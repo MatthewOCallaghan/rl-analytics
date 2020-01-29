@@ -1,2 +1,8 @@
 # dependencies
 node_modules
+
+# test images
+images
+
+# google key
+rl-analytics-266421-08b9e8fb4034.json

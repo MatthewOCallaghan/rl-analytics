@@ -1,5 +1,10 @@
 const vision = require('@google-cloud/vision');
 
+const GOOGLE_APPLICATION_CREDENTIALS = `rl-analytics-266421-08b9e8fb4034.json`;
+
+const keywords = ['competitive', 'score', 'goals', 'assists', 'saves', 'shots', 'ping', 'scored', 'by', 'you'];
+const teamAbbreviation = /^[\[\(][A-Z]{1,4}[\]\)]$/;
+
 const handleExtractUsernames = async (req, res) => {
     const height = word => {
         return ((word.boundingPoly.vertices[3].y - word.boundingPoly.vertices[0].y) + (word.boundingPoly.vertices[2].y - word.boundingPoly.vertices[1].y)) / 2;
@@ -16,15 +21,14 @@ const handleExtractUsernames = async (req, res) => {
         const yIqr = yQ3 - yQ1;
         return [xQ1 - xIqr*1.5, xQ3 + xIqr*1.5, yQ1 - yIqr*1.5, yQ3 + yIqr*1.5];
     }
-    const keywords = ['competitive', 'score', 'goals', 'assists', 'saves', 'shots', 'ping', 'scored', 'by', 'you'];
-    const teamAbbreviation = /^[\[\(][A-Z]{1,4}[\]\)]$/;
-
-    const GOOGLE_APPLICATION_CREDENTIALS = `C://Users//Matth//OneDrive//Documents//Computer Science//Project//rl-analytics-266421-08b9e8fb4034.json`;
+    
     const client = new vision.ImageAnnotatorClient({keyFilename: GOOGLE_APPLICATION_CREDENTIALS});
     
-    const [result] = await client.textDetection('images/full-scoreboard.JPG');//'https://i1.wp.com/4onegaming.com/wp-content/uploads/2016/01/scoreboard-rocket-league.png?fit=810%2C381&ssl=1');
+    // const [result] = await client.textDetection('images/full-scoreboard.JPG');
+    // const [result] = await client.textDetection('https://i1.wp.com/4onegaming.com/wp-content/uploads/2016/01/scoreboard-rocket-league.png?fit=810%2C381&ssl=1');
     // const [result] = await client.textDetection('images/just-names-scoreboard.JPG');
-    // const [result] = await client.textDetection('images/skewed-scoreboard.JPG');
+    const [result] = await client.textDetection('images/skewed-scoreboard.JPG');
+
     const detections = result.textAnnotations;
     var words = detections.filter(
         detection => 

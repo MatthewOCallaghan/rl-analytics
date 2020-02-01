@@ -14,7 +14,7 @@ app.get('/', (req, res) => {
 	res.send("It's working!");
 });
 
-app.get('/extract', async (req, res) => image.handleExtractUsernames(req, res));
+app.post('/extract', async (req, res) => image.handleExtractUsernames(req, res));
 
 app.get('/profile/:name', (req, res) => scrape.combined(res, req.params.name));
 

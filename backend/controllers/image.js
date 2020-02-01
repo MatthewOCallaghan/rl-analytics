@@ -1,4 +1,8 @@
+// Scoreboard images must include both team names and all player usernames as a minimum.
+// For best results, minimise amount of text included in image that is not in scoreboard.
+
 //TODO: Which line does avatar text fall in?
+//TODO: Replace obviously misread characters like multiplication × with x
 
 const vision = require('@google-cloud/vision');
 
@@ -9,15 +13,14 @@ const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', '
 const TEAM_ABBREVIATION = /^[\[\(][A-Z0-9]{1,4}[\]\)]$/;
 
 const handleExtractUsernames = async (req, res) => {
-    const client = new vision.ImageAnnotatorClient({keyFilename: GOOGLE_APPLICATION_CREDENTIALS});
+    const data = await extractUsernamesFromImage(req.body.image);
     
-    // const [result] = await client.textDetection('images/full-scoreboard.JPG');
-    // const [result] = await client.textDetection('https://eggabase.com/wp-content/uploads/Easter_Eggs/Video_Games/Rocket_League/Famous_AI_Names/Game-of-Thrones-Characters-Scoreboard-Rocket-League-Easter-Eggs.jpg');
-    // const [result] = await client.textDetection('images/just-names-scoreboard.JPG');
-    // const [result] = await client.textDetection('images/skewed-scoreboard.JPG');
-    const [result] = await client.textDetection('images/partial-competitive-scoreboard.JPG');
-    // const [result] = await client.textDetection('images/word-between-scoreboards.JPG');
-    // const [result] = await client.textDetection('images/no-top-team-name-scoreboard.JPG');
+    res.json(data);
+}
+
+const extractUsernamesFromImage = async image => {
+    const client = new vision.ImageAnnotatorClient({keyFilename: GOOGLE_APPLICATION_CREDENTIALS});
+    const [result] = await client.textDetection(image);
 
     // Find words
     const detections = result.textAnnotations;
@@ -26,7 +29,6 @@ const handleExtractUsernames = async (req, res) => {
     // Remove outliers
     const boundaries = calculateOutlierBoundaries(words);
     const scores = detections.filter(detection => detection.description.toLowerCase() === 'score'); // Identify 'SCORES' column headings
-    var scoresValid = false;
     if (scores.length === 2) {
         const score1 = scores[0].boundingPoly.vertices;
         const score2 = scores[1].boundingPoly.vertices;
@@ -57,11 +59,8 @@ const handleExtractUsernames = async (req, res) => {
 
     // Remove duplicates
     players = removeDuplicatePlayers(players);
-
-    res.json({players,detections,words,lines,teamLines,teamRecords: teamLines.map(groupLinesIntoRecords)});
+    return ({players,detections,words,lines,teamLines,teamRecords: teamLines.map(groupLinesIntoRecords)});
 }
-
-
 
 const collectWordsFromDetections = detections => {
     return detections.filter(
@@ -121,10 +120,6 @@ const splitLinesIntoTeams = lines => {
         }
     }
     return [lines.slice(0,i), lines.slice(i)];
-}
-
-module.exports = {
-    handleExtractUsernames
 }
 
 // Finds line index containing 'BLUE' or 'ORANGE', returning teamLines.length if neither can be found
@@ -197,7 +192,7 @@ const identifyNamesFromRecords = records => {
          
             const name = record.lines[0].words.map(word => word.description).join('_');
 
-            if (record.lines.length > 1 || !/^[A-Z ]* [A-Z ]*$/.test(word) || !ONE_WORD_TITLES.includes(word)) {
+            if (record.lines.length > 1 || !(/^[A-Z ]* [A-Z ]*$/.test(name) || ONE_WORD_TITLES.includes(name))) {
                 players.push(name);
             }
         }
@@ -219,55 +214,7 @@ const extractUsernamesFromTeamLines = teamLines => {
         // If two clubs playing then every player is in a club so can just look for name after bracketed abbreviation
 
         return extractUsernamesAfterTeamAbbreviationsFromLines(teamLines);
-
     }
-
-    // if (!(detections.filter(detection => detection.description === 'BLUE' || detection.description === 'ORANGE').length > 0)){
-        
-    //     console.log('Two clubs');
-    //     const processTeamLine = (line, players) => {
-    //         var i = 0;
-    //         while(i < line.words.length && !teamAbbreviation.test(line.words[i].description)) {
-    //             i++;
-    //         }
-    //         if (i === line.words.length) {
-    //             return players; // This isn't a player name line
-    //         }
-    //         players.push(line.words.slice(i+1).map(word => word.description).join('_'));
-    //         return players;
-    //     }
-
-    //     const players = teamLines.map(team => team.reduce((acc, line) => processTeamLine(line, acc), []));
-    //     res.json(players);
-    //     console.log('Players identified');
-    // } else {
-    //     const teamRecords = groupLinesIntoRecords(teamLines);
-        
-    //     const identifyNamesFromRecords = records => {
-    //         var players = [];
-    //         records.forEach(record => {
-    //             if (!scoresValid || (record.topY > scores[0].boundingPoly.vertices[3].y && record.bottomY < scores[1].boundingPoly.vertices[0].y) || record.topY > scores[1].boundingPoly.vertices[3].y) { // Ditches team names if it can
-    //                 const linesWithAbbreviation = record.lines.filter(line => line.words.filter(word => teamAbbreviation.test(word.description)).length > 0);
-    //                 if(linesWithAbbreviation.length > 0) { // Take name from after team abbreviation
-    //                     const words = linesWithAbbreviation[0].words;
-    //                     var i = 0;
-    //                     while(!teamAbbreviation.test(words[i].description)) {
-    //                         i++;
-    //                     }
-    //                     players.push(words.slice(i+1).map(word => word.description).join('_'));
-    //                 } else if (
-    //                     (record.lines.length > 1 && record.lines.filter(line => line.words.filter(word => word.description === 'BLUE' || word.description === 'ORANGE').length > 0).length === 0) // If no abbreviation but multiple lines, none of which include 'BLUE' or 'ORANGE', take top line
-    //                     || (record.lines[0].words.filter(word => word.description === 'BLUE' || word.description === 'ORANGE').length === 0) // If only one line which doesn't include 'BLUE' or 'ORANGE', take it
-    //                 ) { 
-    //                     players.push(record.lines[0].words.map(word => word.description).join('_'));
-    //                 }
-    //             }
-    //         });
-    //         return players;
-    //     }
-
-    //     res.json({teams: teamRecords.map(team => identifyNamesFromRecords(team)), teamRecords, teamLines, detections});
-    // }
 }
 
 const removeDuplicatePlayers = players => {
@@ -288,6 +235,10 @@ const removeDuplicatePlayers = players => {
     }
 
     return players;
+}
+
+module.exports = {
+    handleExtractUsernames
 }
 
 

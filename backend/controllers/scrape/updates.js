@@ -24,10 +24,12 @@ const updatesScrape = {
     )
 };
 
-getUpdates = (res, name) => {
-    scrape(`https://rocketleague.tracker.network/profile/updates/ps/${name}`, '.profile-main', updatesScrape)
-        .then(processUpdatesData)
-        .then(data => res.json(data));
+handleGetUpdates = async (res, name) => {
+    res.json(await getUpdates(name));
+}
+
+getUpdates = async name => {
+    return processUpdatesData(await scrape(`https://rocketleague.tracker.network/profile/updates/ps/${name}`, '.profile-main', updatesScrape));
 }
 
 const processUpdatesData = data => {
@@ -41,5 +43,6 @@ const processUpdatesData = data => {
 module.exports = {
     updatesScrape,
     getUpdates,
-    processUpdatesData
+    processUpdatesData,
+    handleGetUpdates
 }

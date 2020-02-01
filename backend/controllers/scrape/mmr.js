@@ -22,10 +22,12 @@ const mmrScrape = {
     )
 };
 
-getRatingDetail = (res, name) => {
-    scrape(`https://rocketleague.tracker.network/profile/mmr/ps/${name}`, 'div.content-container', mmrScrape)
-        .then(processMMRData)
-        .then(data => res.json(data));
+handleGetRatingDetail = async (res, name) => {
+    res.json(await getRatingDetail(name));
+}
+
+getRatingDetail = async name => {
+    return processMMRData(await scrape(`https://rocketleague.tracker.network/profile/mmr/ps/${name}`, 'div.content-container', mmrScrape));
 }
 
 const processMMRData = data => {
@@ -98,5 +100,6 @@ const processMMRData = data => {
 module.exports = {
     mmrScrape,
     getRatingDetail,
-    processMMRData
+    processMMRData,
+    handleGetRatingDetail
 }

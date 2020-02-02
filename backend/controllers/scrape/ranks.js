@@ -1,4 +1,4 @@
-const scrape = require('./scrape');
+const { scrape } = require('./scrape');
 
 const ranksScrape = scrape('div.season-table',
 [
@@ -32,10 +32,9 @@ const ranksScrape = scrape('div.season-table',
     }
 ]);
 
-getSeasonRanks = (res, name) => {
-    scrape(`https://rocketleague.tracker.network/profile/ps/${name}`, 'body', ranksScrape)
-        .then(processRanksData)
-        .then(data => res.json(data));
+getSeasonRanks = async (name, platform) => {
+    return await scrape(`https://rocketleague.tracker.network/profile/${platform}/${name}`, 'body', ranksScrape)
+        .then(processRanksData);
 }
 
 const processRanksData = data => {

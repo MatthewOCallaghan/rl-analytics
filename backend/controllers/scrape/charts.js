@@ -1,13 +1,12 @@
 const toObject = require('convert-to-object');
 
-const scrape = require('./scrape');
+const { scrape } = require('./scrape');
 
 const chartsScrape = scrape('.content-container div', ['script | chartData']);
 
-getChartData = (res, name) => {
-    scrape(`https://rocketleague.tracker.network/profile/ps/${name}`, 'body', chartsScrape)//scrape('.content-container div', ['script | chartData']))
-        .then(processChartData)
-        .then(data => res.json(data));
+getChartData = async (name, platform) => {
+    return await scrape(`https://rocketleague.tracker.network/profile/${platform}/${name}`, 'body', chartsScrape)//scrape('.content-container div', ['script | chartData']))
+        .then(processChartData);
 }
 
 const processChartData = data => {

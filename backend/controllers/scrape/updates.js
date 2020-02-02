@@ -1,4 +1,4 @@
-const scrape = require('./scrape');
+const { scrape } = require('./scrape');
 
 const updatesScrape = {
     times: scrape('h2.card-title', 
@@ -24,12 +24,8 @@ const updatesScrape = {
     )
 };
 
-handleGetUpdates = async (res, name) => {
-    res.json(await getUpdates(name));
-}
-
-getUpdates = async name => {
-    return processUpdatesData(await scrape(`https://rocketleague.tracker.network/profile/updates/ps/${name}`, '.profile-main', updatesScrape));
+getUpdates = async (name, platform) => {
+    return processUpdatesData(await scrape(`https://rocketleague.tracker.network/profile/updates/${platform}/${name}`, '.profile-main', updatesScrape));
 }
 
 const processUpdatesData = data => {
@@ -43,6 +39,5 @@ const processUpdatesData = data => {
 module.exports = {
     updatesScrape,
     getUpdates,
-    processUpdatesData,
-    handleGetUpdates
+    processUpdatesData
 }

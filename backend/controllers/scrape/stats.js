@@ -1,4 +1,4 @@
-const scrape = require('./scrape');
+const { scrape } = require('./scrape');
 
 const statsScrape = scrape('div.stat', 
         [
@@ -10,9 +10,8 @@ const statsScrape = scrape('div.stat',
         ]
     );
 
-getStats = (res, name) => {
-    scrape(`https://rocketleague.tracker.network/profile/ps/${name}`, 'body', statsScrape)
-        .then(data => res.json(data));
+getStats = async (name, platform) => {
+    return await scrape(`https://rocketleague.tracker.network/profile/${platform}/${name}`, 'body', statsScrape)
 }
 
 module.exports = {

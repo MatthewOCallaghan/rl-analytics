@@ -1,5 +1,7 @@
 const xray = require('x-ray');
 
+const PLATFORMS = ['ps', 'steam', 'xbox'];
+
 const scrape = xray({
     filters: {
         chartData: value => typeof value === 'string' && value.trim().charAt(0) === '$' ? value : null,
@@ -35,4 +37,26 @@ removeCommas = value => typeof value === 'string' ? value.replace(/,/g, '') : va
 
 removeNestedHTML = value => typeof value === 'string' ? value.replace(/<(.|\n)*>/g, '') : value;
 
-module.exports = scrape;
+handleScrapingRequest = async (res, name, platform, fcn) => {
+    var platforms = PLATFORMS;
+    if (platform) {
+        if(!PLATFORMS.includes(platform)) {
+            res.status(400).json("Platform must be 'ps', 'steam' or 'xbox'");
+        } else {
+            platforms = [platform];
+        }
+    }
+    Promise.all(platforms.map(platform => getPlatformData(name, platform, fcn)))
+        .then(data => res.json(data));
+}
+
+getPlatformData = async (name, platform, fcn) => {
+    const data = await fcn(name, platform);
+    return {platform, data};
+}
+
+module.exports = {
+    scrape,
+    handleScrapingRequest,
+    PLATFORMS
+};

@@ -1,6 +1,6 @@
 const toObject = require('convert-to-object');
 
-const scrape = require('./scrape');
+const { scrape } = require('./scrape');
 
 const mmrScrape = {
     scripts: [`script[type='text/javascript'] | trim`],
@@ -22,18 +22,20 @@ const mmrScrape = {
     )
 };
 
-handleGetRatingDetail = async (res, name) => {
-    res.json(await getRatingDetail(name));
-}
-
-getRatingDetail = async name => {
-    return processMMRData(await scrape(`https://rocketleague.tracker.network/profile/mmr/ps/${name}`, 'div.content-container', mmrScrape));
+getRatingDetail = async (name, platform) => {
+    return processMMRData(await scrape(`https://rocketleague.tracker.network/profile/mmr/${platform}/${name}`, 'div.content-container', mmrScrape));
 }
 
 const processMMRData = data => {
     let regexGlobal = /data\['\d+'\] ?= ?{((?!data).)+}/gs;
     let regex = /data\['(\d+)'\] ?= ?({((?!data).)+})/s;
-    data.scripts = data.scripts.filter(script => script.match(regexGlobal) != null)[0] // Filter down to just scripts we want
+
+    const scripts = data.scripts.filter(script => script.match(regexGlobal) != null);
+    if(scripts.length === 0) {
+        return []; // User does not exist
+    }
+
+    data.scripts = scripts[0] // Filter down to just scripts we want
                                 .match(regexGlobal)                                     // Obtain each playlist data as string in array
                                 .map(playlist => {                                      // Extract object from string
                                     const result = playlist.match(regex);
@@ -42,6 +44,12 @@ const processMMRData = data => {
                                         data: toObject(result[2])
                                     };
                                 });
+
+    const scriptIds = data.scripts.map(playlist => playlist.id);
+    if (data.playlists.map(playlist => parseInt(playlist.id)).filter(id => !scriptIds.includes(id)).length > 0) {
+        return []; // Not all required data collected
+    }
+
     return data.playlists.map(playlist => { // Combining data and stats for each playlist
                 playlist.data = data.scripts.filter(script => script.id === parseInt(playlist.id))[0].data;
                 playlist.name = playlist.data.name;
@@ -100,6 +108,5 @@ const processMMRData = data => {
 module.exports = {
     mmrScrape,
     getRatingDetail,
-    processMMRData,
-    handleGetRatingDetail
+    processMMRData
 }

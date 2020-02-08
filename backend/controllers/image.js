@@ -1,16 +1,17 @@
 // Scoreboard images must include both team names and all player usernames as a minimum.
 // For best results, minimise amount of text included in image that is not in scoreboard.
 
-//TODO: Which line does avatar text fall in?
 //TODO: Replace obviously misread characters like multiplication × with x
+//TODO: cut off everything that starts above bottom of team name, as well as all records above and including team name
+//TODO: Use fuzzy search comparison to compare extracted names and names used in the RL session and replace if needed
 
 const vision = require('@google-cloud/vision');
 
 const GOOGLE_APPLICATION_CREDENTIALS = `rl-analytics-266421-08b9e8fb4034.json`;
 
-const KEYWORDS = ['competitive', 'score', 'goals', 'assists', 'saves', 'shots', 'ping', 'scored', 'by', 'you']; //TODO: Partial keywords
-const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', 'ALL-STAR', 'SUPERSTAR', 'DEVELOPER', 'MODERATOR', 'BALLISTIC', 'FLOATER', 'GOALTENDER', 'LEADFOOT', 'RECKLESS', 'SHERPA', 'SHOWBOAT', 'SKYLORD', 'STEAMROLLER', 'WALL-CRAWLER', 'WHEELER', 'DEMOGORGON', 'COUCH-POTATO'];
-const TEAM_ABBREVIATION = /^[\[\(][A-Z0-9]{1,4}[\]\)]$/;
+const KEYWORDS = ['COMPETITIVE', 'SCORE', 'GOALS', 'ASSISTS', 'SAVES', 'SHOTS', 'PING', 'SCORED', 'BY', 'YOU'];                                                                                                                                                                                                               // From OG PLAYER, as OG can get lost if deemed to start before team name
+const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', 'ALL-STAR', 'SUPERSTAR', 'DEVELOPER', 'MODERATOR', 'BALLISTIC', 'FLOATER', 'GOALTENDER', 'LEADFOOT', 'RECKLESS', 'SHERPA', 'SHOWBOAT', 'SKYLORD', 'STEAMROLLER', 'WALL-CRAWLER', 'WHEELER', 'DEMOGORGON', 'COUCH-POTATO', 'COMMITTED', 'JUGGLER', 'PLAYER'];
+const TEAM_ABBREVIATION = /[\[\(][A-Z0-9]{1,4}[\]\)]$/; // Just matches end of word rather than whole word in case avatar text gets merged in
 
 const handleExtractUsernames = async (req, res) => {
     const data = await extractUsernamesFromImage(req.body.image);
@@ -62,13 +63,37 @@ const extractUsernamesFromImage = async image => {
     return ({players,detections,words,lines,teamLines,teamRecords: teamLines.map(groupLinesIntoRecords)});
 }
 
+// const removeCompetitiveHeading = 
+
+const isWordCutOff = (word, target, imageRightX) => {
+    return word.description === target ||
+           (
+                word.description === target.substring(0, word.description.length) &&
+                Math.max(word.boundingPoly.vertices[1].x, word.boundingPoly.vertices[2].x) > imageRightX - ((word.boundingPoly.vertices[1].x - word.boundingPoly.vertices[0].x) / word.description.length)
+            );
+}
+
 const collectWordsFromDetections = detections => {
-    return detections.filter(
+
+    // Remove 'COMPETITIVE' or 'COMPETITIVE [SOLO]' heading, even if cut off at end
+    var startIndex = 1; // Starts at 1 to remove first detection containing all words
+    const imageRightX = Math.max(detections[0].boundingPoly.vertices[1].x, detections[0].boundingPoly.vertices[2].x);
+    const firstWord = detections[startIndex].description;
+    if (firstWord === 'COMPETITIVE') {
+        startIndex++;
+        if(/^COMPETITIVE [\[\(]/.test(detections[startIndex].description) && isWordCutOff(detections[startIndex], '[SOLO]', imageRightX)) {
+            startIndex++;
+        }
+    } else if (isWordCutOff(detections[startIndex], 'COMPETITIVE', imageRightX)) {
+        startIndex++;
+    }
+
+    return detections.slice(startIndex).filter(
         detection => 
-            !KEYWORDS.includes(detection.description.toLowerCase()) &&  //Remove keywords
+            !KEYWORDS.includes(detection.description) &&  //Remove keywords
             !/^\d+$/.test(detection.description) && // Remove only numbers
             !/^a?l{1,2}\d{0,3}$/.test(detection.description) // Remove misinterpretation of ping
-        ).slice(1); // Remove first result containing all words
+        );
 }
 
 const calculateOutlierBoundaries = words => {
@@ -90,8 +115,9 @@ const groupWordsIntoLines = words => {
         const line = lines[lines.length - 1];
         const error = Math.min(wordBottomY - wordTopY, line.bottomY - line.topY) / 2;
         if (
-            Math.abs(wordTopY - line.topY) < error && 
-            Math.abs(wordBottomY - line.bottomY) < error && 
+            // Math.abs(wordTopY - line.topY) < error && 
+            // Math.abs(wordBottomY - line.bottomY) < error && 
+            (Math.min(wordBottomY, line.bottomY) - Math.max(wordTopY, line.topY)) > error &&
             Math.abs(word.boundingPoly.vertices[0].x - line.words[line.words.length - 1].boundingPoly.vertices[1].x) < (error * 2) // Ensures word is to right of last word on line (requires a bigger error margin as this time there is supposed to be a gap)
         ) {
             line.topY = Math.min(line.topY, wordTopY);
@@ -107,10 +133,14 @@ const groupWordsIntoLines = words => {
 }
 
 const splitLinesIntoTeams = lines => {
+    if(lines.length < 2) {
+        return [lines[0] || [], lines[1] || []];
+    }
     const ySplit = (lines[lines.length - 1].bottomY + lines[0].topY) / 2;
     var i = Math.floor(lines.length / 2);
     var count = 0;
     while(count < lines.length && !(lines[i-1].bottomY < ySplit && lines[i].topY > ySplit)) {
+        count++;
         if(lines[i].topY < ySplit) {
             i++;
         } else if (lines[i-1].bottomY > ySplit) {
@@ -124,11 +154,27 @@ const splitLinesIntoTeams = lines => {
 
 // Finds line index containing 'BLUE' or 'ORANGE', returning teamLines.length if neither can be found
 const findGenericTeamName = teamLines => {
+    // var i = 0;
+    // while(i < teamLines.length && teamLines[i].words.filter(word => word.description === 'BLUE' || word.description === 'ORANGE').length === 0) {
+    //     i++;
+    // }
+    // return i;
+
     var i = 0;
-    while(i < teamLines.length && teamLines[i].words.filter(word => word.description === 'BLUE' || word.description === 'ORANGE').length === 0) {
+    while(i < teamLines.length) {
+        const nameWords = teamLines[i].words.filter(word => word.description === 'BLUE' || word.description === 'ORANGE');
+        if (nameWords.length > 0) {
+            const vertices = nameWords[0].boundingPoly.vertices;
+            return {
+                lineIndex: i,
+                leftX: vertices[0].x,
+                bottomY: vertices[3].y,
+                error: (vertices[1].x - vertices[0].x) / nameWords[0].description.length
+            };
+        }
         i++;
     }
-    return i;
+    return {};
 }
 
 const extractUsernamesAfterTeamAbbreviationsFromLines = lines => {
@@ -140,7 +186,7 @@ const extractUsernamesAfterTeamAbbreviationsFromLines = lines => {
         if (i === line.words.length) {
             return players; // This isn't a player name line
         }
-        players.push(line.words.slice(i+1).map(word => word.description).join('_'));
+        players.push(mergeWordsIntoString(line.words.slice(i+1)));
         return players;
     }
 
@@ -150,7 +196,7 @@ const extractUsernamesAfterTeamAbbreviationsFromLines = lines => {
 const groupLinesIntoRecords = lines => {
     const processRecordLines = (line, records) => {
         const record = records[records.length - 1];
-        const error = Math.min(record.bottomY - record.topY, line.bottomY - line.topY) * 0.3; //TODO: Check this figure.  May have to filter single row records to ignore all caps (and includes spaces)
+        const error = Math.min(record.bottomY - record.topY, line.bottomY - line.topY) * 0.13; // Lowest figure found to not group two names into the same record - was 0.2 beforehand
         if (line.topY < record.bottomY + error) {
             record.topY = Math.min(record.topY, line.topY);
             record.bottomY = Math.max(record.bottomY, line.bottomY);
@@ -167,30 +213,34 @@ const groupLinesIntoRecords = lines => {
 const findRecordContainingLine = (records, lineIndex) => {
     var recordIndex = 0;
     var lineCount = 0;
-    while(recordIndex < records.length && lineCount < lineIndex) {
+    while(recordIndex < records.length && lineCount - 1 < lineIndex) {
         lineCount += records[recordIndex].lines.length;
         recordIndex++;
     }
-    return recordIndex;
+    return recordIndex - 1;
+}
+
+mergeWordsIntoString = words => {
+    return words.map(word => word.description).join(' ');
 }
 
 const identifyNamesFromRecords = records => {
     var players = [];
     records.forEach(record => {
         // If team abbreviation present, take name after abbreviation
-        const linesWithAbbreviation = record.lines.filter(line => line.words.filter(word => TEAM_ABBREVIATION.test(word.description)).length > 0);
+        const linesWithAbbreviation = record.lines.filter(line => line.words.filter((word, index) => TEAM_ABBREVIATION.test(word.description) && index < line.words.length - 1).length > 0);
         if(linesWithAbbreviation.length > 0) { // Take name from after team abbreviation
             const words = linesWithAbbreviation[0].words;
             var i = 0;
             while(i < words.length && !TEAM_ABBREVIATION.test(words[i].description)) {
                 i++;
             }
-            players.push(words.slice(i+1).map(word => word.description).join('_'));
+            players.push(mergeWordsIntoString(words.slice(i+1)));
         } else {
             // Else if multiple lines, take top line
             // Else if not all caps with at least one space and not a one word title, take whole line as name
          
-            const name = record.lines[0].words.map(word => word.description).join('_');
+            const name = mergeWordsIntoString(record.lines[0].words);
 
             if (record.lines.length > 1 || !(/^[A-Z ]* [A-Z ]*$/.test(name) || ONE_WORD_TITLES.includes(name))) {
                 players.push(name);
@@ -200,14 +250,58 @@ const identifyNamesFromRecords = records => {
     return players;
 }
 
+// const removeWordsFromRecordsThatStartBeforeBottomOfTeamName = (records, teamNameBottomY) => {
+//     // return records.map(record => (
+//     //     {
+//     //         ...record,
+//     //         lines: record.lines.map(line => (
+//     //             {
+//     //                 ...line, 
+//     //                 words: line.words.filter(word => word.boundingPoly.vertices[0].y > teamNameBottomY)
+//     //             }
+//     //         )).filter(line => line.words.length > 0)
+//     //     }
+//     // )).filter(record => record.lines.length > 0);
+
+//     records.forEach((record, recordIndex) => {
+//         record.lines.forEach((line, lineIndex) => {
+//             line.words.forEach((word, wordIndex) => {
+//                 if(word.boundingPoly.vertices[0].y > teamNameBottomY) {
+//                     return records;
+//                 }
+                
+//             });
+//         });
+//     });
+// }
+
+const removeWordsFromLineThatEndBeforeX = (line, x) => {
+    // Used to remove avatar text (that ends before title leftX + width of one letter (as an error margin))
+    // Keeps words that end before x if they end in team abbreviation (so that abbreviation doesn't get lost if Google merges it with avatar text)
+
+    const newWords = line.words.filter(word => word.boundingPoly.vertices[1].x >= x || TEAM_ABBREVIATION.test(word.description));
+    if (newWords.length < line.words.length && newWords.length) {
+        line.topY = Math.min(newWords.map(word => word.boundingPoly.vertices[0].y));
+        line.bottomY = Math.max(newWords.map(word => word.boundingPoly.vertices[3].y));
+    }
+    line.words = newWords;
+    return line;
+}
+
 const extractUsernamesFromTeamLines = teamLines => {
 
-    const teamNameLineIndex = findGenericTeamName(teamLines);
+    const { lineIndex, leftX, bottomY, error } = findGenericTeamName(teamLines);
 
-    if(teamNameLineIndex < teamLines.length) {
+    if(lineIndex || lineIndex === 0) {
 
+        // Remove words that start before title (avatar text)
+        teamLines = teamLines.map(line => removeWordsFromLineThatEndBeforeX(line, leftX + error)).filter(line => line.words.length > 0);
+        
         var teamRecords = groupLinesIntoRecords(teamLines);
-        teamRecords = teamRecords.slice(findRecordContainingLine(teamRecords, teamNameLineIndex) + 1);
+        teamRecords = teamRecords.slice(findRecordContainingLine(teamRecords, lineIndex) + 1);
+        // teamRecords = removeWordsFromRecordsThatStartBeforeBottomOfTeamName(teamRecords, bottomY);
+
+
         return identifyNamesFromRecords(teamRecords);
 
     } else {
@@ -246,9 +340,10 @@ module.exports = {
 
     1. Split into two teams
     2. If team contains BLUE or ORANGE...
-        i. Group into records
-        ii. Remove everything before and including team name
-        iii. For every remaining record...
+        i. Remove words that start before team name
+        ii. Group into records
+        iii. Remove all records from the one including team name and above, and all words that start vertically before bottom of team name
+        iv. For every remaining record...
             a. If team abbreviation present, take name
             b. Else if multiple lines, take top line
             c. Else if not all caps with spaces and not a one word title, take it as name

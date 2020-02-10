@@ -61,56 +61,9 @@ describe('Image extraction', () => {
     });
 });
 
-
-// describe('Image extraction', () => {
+describe('Web scraping', () => {
     
-//     var responses = [];
-
-//     const initResponses = async () => {
-
-//         const extractFromImage = async image => {
-//             const response = await request.post('/extract')
-//                     .send({
-//                         image: `images/${image}`
-//                     });
-//             return {
-//                 image: image.replace(/\.[^/.]+$/, ""),
-//                 statusCode: response.statusCode,
-//                 players: response.body.players
-//             };
-//         }
-
-//         const images = fs.readdirSync('images/');
-//         responses = await Promise.all(images.map(image => extractFromImage(image)));
-//     }
-
-//     beforeAll(() => {
-//         return initResponses();
-//     });
-    
-
-//     describe('Algorithm correct', () => {
-//         responses.forEach(response => {
-//             it(response.image, () => {
-//                 expect(response.statusCode).toEqual(200);
-//                 if(!googleImageExtractions[response.image]) {
-//                     expect(response.players).toEqual(correctImageExtractions[response.image]);
-//                 } else {
-//                     expect(response.players).toEqual(googleImageExtractions[response.image]);
-//                 }
-//             });
-//         })
-//     });
-
-//     describe('Algorithm and Google correct', () => {
-//         responses.forEach(response => {
-//             it(response.image, () => {
-//                 expect(response.statusCode).toEqual(200);
-//                 expect(response.players).toEqual(correctImageExtractions[response.image]);
-//             });
-//         })
-//     });
-// });
+})
 
 server.close();
 

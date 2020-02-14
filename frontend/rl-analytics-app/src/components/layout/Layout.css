@@ -1,0 +1,21 @@
+header {
+    background-color: black;
+    color: white;
+    padding: 0.5rem 1rem;
+}
+
+header a {
+    color: white;
+}
+
+header a:hover {
+    color: white;
+}
+
+#logo {
+    font-size: 2rem;
+}
+
+main {
+    padding: 1rem 5%;
+}

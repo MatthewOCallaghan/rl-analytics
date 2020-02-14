@@ -1,0 +1,45 @@
+#landing-container {
+    color: white;
+    min-height: 100vh;
+    padding: 0 5%;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.landing-title-rl {
+    font-size: 2rem;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+#landing-title-analytics {
+    font-size: min(16vh,16vw,4.5rem);
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.landing-box {
+    border-width: 1px;
+    border-style: solid;
+    padding: 5%;
+    border-radius: 10px;
+}
+
+.landing-box h2 {
+    margin-top: 0;
+}
+
+#landing-container input {
+    margin-bottom: 1rem;
+}
+
+.particles {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+  }

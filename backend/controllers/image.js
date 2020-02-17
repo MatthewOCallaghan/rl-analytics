@@ -14,14 +14,22 @@ const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', '
 const TEAM_ABBREVIATION = /[\[\(][A-Z0-9\*]{1,4}[\]\)]$/; // Just matches end of word rather than whole word in case avatar text gets merged in
 
 const handleExtractUsernames = async (req, res) => {
-    const data = await extractUsernamesFromImage(req.body.image);
+    // const data = await extractUsernamesFromImage(req.body.image);
+    extractUsernamesFromImage(req.body.image)
+    .then(data => res.json(data))
+    .catch(err => res.json(err));
     
-    res.json(data);
+    // res.json(data);
 }
 
 const extractUsernamesFromImage = async image => {
     const client = new vision.ImageAnnotatorClient({keyFilename: GOOGLE_APPLICATION_CREDENTIALS});
-    const [result] = await client.textDetection(image);
+    const request = {
+        image: {
+            content: image
+        }
+    }
+    const [result] = await client.textDetection(request);
 
     // Find words
     const detections = result.textAnnotations;

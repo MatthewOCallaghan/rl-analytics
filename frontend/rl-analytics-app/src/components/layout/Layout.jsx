@@ -5,12 +5,12 @@ import './Layout.css';
 
 const Layout = ({ children }) => {
     return (
-        <>
+        <div id='layout-container'>
             <Header />
             <main>
                 {children}
             </main>
-        </>
+        </div>
 
     );
 }

@@ -47,20 +47,18 @@ const Session = () => {
 
     return (
         <Layout>
-            <Container>
+            <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%'}}>
                 <Row>
                     <Col xs={12}>
                         <h1>Session</h1>
                         <p>Enter each player's username, or simply take a picture of the in-game scoreboard</p>
+                        <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
+                        <Button colour='black' handleOnClick={() => fileUpload.click()}>
+                            Take picture
+                        </Button>
                     </Col>
                 </Row>
-                <Row>
-                    <Col xs={12}>
-                            {/* <Button colour='black' style={{width: '50%'}}>Take picture</Button> */}
-                            <input type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
-                    </Col>
-                </Row>
-                <Row>
+                <Row style={{flexGrow: 1}}>
                     <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
                         <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} />
                     </Col>
@@ -70,15 +68,9 @@ const Session = () => {
                 </Row>
                 <Row>
                     <Col xs={12} style={{display: 'flex', justifyContent: 'space-between'}}>
-                        <Button colour='black' style={{width: '25%'}} ghost handleOnClick={() => console.log('Back')}>Back</Button>
-                        <Button colour='black' style={{width: '25%'}} handleOnClick={() => console.log('Submit')}>Submit</Button>
+                        <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => console.log('Back')}>Back</Button>
+                        <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => console.log('Submit')}>Submit</Button>
                     </Col>
-                    {/* <Col xs={6}>
-                        <Button colour='black'>Back</Button>
-                    </Col>
-                    <Col xs={6}>
-                        <Button colour='black'>Submit</Button>
-                    </Col> */}
                 </Row>
             </Container>
         </Layout>

@@ -1,3 +1,9 @@
+#layout-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
 header {
     background-color: black;
     color: white;
@@ -16,6 +22,7 @@ header a:hover {
     font-size: 2rem;
 }
 
-main {
+#layout-container > main {
     padding: 1rem 0;
+    flex-grow: 1;
 }

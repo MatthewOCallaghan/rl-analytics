@@ -1,10 +1,11 @@
-.button {
+button {
     border-style: solid;
     border-width: 1px;
     color: white;
     text-align: center;
     border-radius: 4px;
     font-size: 1.2rem;
+    transition: all 0.4s;
 }
 
 .button-orange {
@@ -12,7 +13,7 @@
     border-color: orange;
 }
 
-.button-orange:hover:not(.button-disabled) {
+.button-orange:hover:not(.button-disabled), .button-orange.button-ghost {
     color: orange;
 }
 
@@ -21,30 +22,32 @@
     border-color: blue;
 }
 
-.button-blue:hover:not(.button-disabled) {
+.button-blue:hover:not(.button-disabled), .button-blue.button-ghost {
     color: blue;
 }
 
-.button:hover:not(.button-disabled) {
+.button-black, button.button-black.button-ghost:hover {
+    background-color: black;
+    border-color: black;
+}
+
+.button-black:hover:not(.button-disabled):not(.button-ghost), .button-black.button-ghost {
+    color: black;
+}
+
+button:hover:not(.button-disabled) {
     background-color: transparent;
     cursor: pointer;
+}
+
+.button-ghost {
+    background-color: transparent;
+}
+
+button.button-ghost:hover {
+    color: white;
 }
 
 .button-disabled {
     filter: brightness(0.5);
 }
-
-/* .button-disabled::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: black;
-    opacity: 20%;
-} */
-
-/* .button-disabled:hover {
-    cursor: default;
-} */

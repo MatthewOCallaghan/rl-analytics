@@ -2,11 +2,11 @@ import React from 'react';
 
 import './Button.css';
 
-const Button = ({children, colour, width, disabled, handleOnClick}) => {
+const Button = ({children, colour, style, disabled, handleOnClick, ghost}) => {
     return (
-        <div className={`button button-${colour} ${disabled && 'button-disabled'}`} style={{width}} onclick={disabled ? undefined : () => handleOnClick()}>
+        <button type="button" disabled={disabled} className={`button-${colour}${disabled ? ' button-disabled' : ''}${ghost ? ' button-ghost' : ''}`} style={style} onClick={disabled ? undefined : () => handleOnClick()}>
             {children}
-        </div>
+        </button>
     );
 }
 

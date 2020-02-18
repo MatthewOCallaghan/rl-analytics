@@ -45,13 +45,13 @@ const Landing = () => {
                         <Box colour='blue'>
                             <h2>New session</h2>
                             <p>Get in-game analytics on teammates and opponents</p>
-                            <Link to='/session'><Button width='100%' colour='blue'>New session</Button></Link>
+                            <Link to='/session'><Button colour='blue' style={{width: '100%'}}>New session</Button></Link>
                         </Box>
                         <Box colour='orange' style={{marginTop: 20}}>
                             <h2>Display</h2>
                             <p>Enter the session ID to view it</p>
                             <TextBox handleOnChange={handleTextBoxChange} />
-                            <Button width='100%' colour='orange' disabled={!sessionId.length}>View session</Button>
+                            <Button colour='orange' disabled={!sessionId.length} style={{width: '100%'}}>View session</Button>
                         </Box>
                     </Col>
                 </Row>

@@ -7,14 +7,116 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from '../../components/button/Button';
 import TextBox from '../../components/textbox/TextBox';
+import MatchAnalytics from '../../components/match-analytics/MatchAnalytics';
 
 import './session.css';
 
 const base64Prefix = /^data:image\/\w+;base64,/;
 
+const testMatch = {
+    players: [
+        [
+            {
+                name: 'MattyOCallaghan',
+                mmr: 1214,
+                playstyle: '42:17:41',
+                games: 213,
+                mvpWinPercentage: 48.3,
+                streak: {type: 'L', length: 2},
+                divUp: 5,
+                divDown: 25,
+                rank: 'Champion I',
+                division: 'I',
+                loading: false,
+                error: false
+            },
+            {
+                name: 'jamesontour',
+                mmr: 1187,
+                playstyle: '43:27:30',
+                games: 248,
+                mvpWinPercentage: 52.8,
+                divDown: 14,
+                rank: 'Diamond III',
+                division: 'III',
+                loading: false,
+                error: false
+            }
+        ],
+        [
+            {
+                name: 'opring1871',
+                loading: true,
+                error: false
+            },
+            {
+                name: 'test',
+                loading: false,
+                error: true
+            }
+        ]
+    ],
+    season: 13
+}
+
 const Session = () => {
+    const [view, setView] = useState('analytics'); //analytics, new
+    const [matches, setMatches] = useState([testMatch]);
+
+    const addMatch = players => {
+        setMatches([...matches, {
+            players: players.map(teamPlayers => teamPlayers.filter(player => player !== '').map(player => ({
+                name: player,
+                loading: true,
+                error: false
+            })))
+        }]);
+        setView('analytics');
+    }
+
+    return (
+        <Layout>
+            {view === 'analytics'
+                ?   <AnalyticsScreen matches={matches} navigateNewMatch={() => setView('new')} />
+                :   <NewMatch navigateBack={() => setView('analytics')} addMatch={addMatch} />}
+        </Layout>
+    );
+}
+
+const AnalyticsScreen = ({ matches, navigateNewMatch }) => {
+    return (
+        <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%'}}>
+            <Row>
+                <Col xs={12}>
+                    <h2>Session</h2>
+                </Col>
+            </Row>
+            <Row>
+                <Col xs={12}>
+                    {
+                        matches.length === 0
+                            ?   <p>No matches played yet...</p>
+                            :   <MatchAnalytics match={matches[matches.length - 1]} />
+                    }
+                </Col>
+            </Row>
+            <Row>
+                <Col xs={12} style={{textAlign: 'right'}}>
+                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => navigateNewMatch()}>New match</Button>
+                </Col>
+            </Row>
+        </Container>
+    );
+}
+
+const NewMatch = ({ addMatch, navigateBack }) => {
     const [fileUpload, setFileUpload] = useState("");
     const [players, setPlayers] = useState([['','',''],['','','']]);
+
+    const validPlayers = (players) => {
+        players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
+        return players[0].length > 0 && players[1].length === players[0].length;
+    }
 
     const handleImage = async event => {
         const file = fileUpload.files[0];
@@ -46,34 +148,32 @@ const Session = () => {
     }
 
     return (
-        <Layout>
-            <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%'}}>
-                <Row>
-                    <Col xs={12}>
-                        <h1>Session</h1>
-                        <p>Enter each player's username, or simply take a picture of the in-game scoreboard</p>
-                        <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
-                        <Button colour='black' handleOnClick={() => fileUpload.click()}>
-                            Take picture
-                        </Button>
-                    </Col>
-                </Row>
-                <Row style={{flexGrow: 1}}>
-                    <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
-                        <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} />
-                    </Col>
-                    <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
-                        <TeamBox team='ORANGE' players={players[1]} handlePlayerInput={handleTypedPlayerInput(1)} />
-                    </Col>
-                </Row>
-                <Row>
-                    <Col xs={12} style={{display: 'flex', justifyContent: 'space-between'}}>
-                        <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => console.log('Back')}>Back</Button>
-                        <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => console.log('Submit')}>Submit</Button>
-                    </Col>
-                </Row>
-            </Container>
-        </Layout>
+        <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%'}}>
+            <Row>
+                <Col xs={12}>
+                    <h1>New match</h1>
+                    <p>Enter each player's username, or simply take a picture of the in-game scoreboard</p>
+                    <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
+                    <Button colour='black' handleOnClick={() => fileUpload.click()}>
+                        Take picture
+                    </Button>
+                </Col>
+            </Row>
+            <Row style={{flexGrow: 1}}>
+                <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
+                    <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} />
+                </Col>
+                <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
+                    <TeamBox team='ORANGE' players={players[1]} handlePlayerInput={handleTypedPlayerInput(1)} />
+                </Col>
+            </Row>
+            <Row>
+                <Col xs={12} style={{display: 'flex', justifyContent: 'space-between'}}>
+                    <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => navigateBack()}>Back</Button>
+                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => addMatch(players)} disabled={!validPlayers(players)}>Submit</Button>
+                </Col>
+            </Row>
+        </Container>
     );
 }
 

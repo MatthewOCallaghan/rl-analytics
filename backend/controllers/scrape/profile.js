@@ -48,10 +48,10 @@ getAllProfileDataForEachPlatform = async name => {
                 }
             };
         }
-        return {platform, data: {}};
+        return null;
     }
 
-    return await Promise.all(PLATFORMS.map(platform => getData(name, platform)));
+    return (await Promise.all(PLATFORMS.map(platform => getData(name, platform)))).filter(platform => platform != null);
 }
 
 module.exports = {

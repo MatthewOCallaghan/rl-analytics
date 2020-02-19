@@ -47,12 +47,13 @@ handleScrapingRequest = async (res, name, platform, fcn) => {
         }
     }
     Promise.all(platforms.map(platform => getPlatformData(name, platform, fcn)))
+        .then(data => data.filter(platform => platform != null))
         .then(data => res.json(data));
 }
 
 getPlatformData = async (name, platform, fcn) => {
     const data = await fcn(name, platform);
-    return {platform, data};
+    return Array.isArray(data) && data.length === 0 || Object.keys(data).length === 0 ? null : {platform, data};
 }
 
 module.exports = {

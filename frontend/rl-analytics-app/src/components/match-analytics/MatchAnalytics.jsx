@@ -41,7 +41,7 @@ const Team = ({ name, players, colour, season }) => {
                     <tbody>
                         {
                             players.map((player, index) => 
-                                <tr key={'table-row:'+ player.name + index} className='player' style={{backgroundColor: colour}}>
+                                <tr key={'table-row:'+ player.name + index} className='player' style={{backgroundColor: colour === 'orange' ? '#964000' : colour}}>
                                     <td>
                                         <div style={{minHeight: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexFlow: 'column nowrap'}}>
                                             {!player.loading && !player.error && 

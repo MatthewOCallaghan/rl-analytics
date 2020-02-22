@@ -14,7 +14,6 @@ table.player-table th {
 }
 
 tr.player {
-    /* border: white solid 5px; */
     border-top: 5px solid;
     border-bottom: 5px solid;
     border-color: white;

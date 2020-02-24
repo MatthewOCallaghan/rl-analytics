@@ -26,7 +26,7 @@ const { getStats } = require('./controllers/scrape/stats');
 const { getSeasonRanks } = require('./controllers/scrape/ranks');
 const { getRatingDetail } = require('./controllers/scrape/mmr');
 const { getUpdates } = require('./controllers/scrape/updates');
-const { addSession } = require('./controllers/sessions');
+const { addSession, addMatch, getMatches, checkTokenExists } = require('./controllers/sessions');
 
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
@@ -52,5 +52,9 @@ app.get('/profile/:name/mmr', async (req, res) => await handleScrapingRequest(re
 app.get('/profile/:name/updates', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getUpdates));
 
 app.post('/sessions', (req, res) => addSession(req, res, database));
+
+app.post('/sessions/:code', checkTokenExists, (req, res) => addMatch(req, res, database));
+
+app.get('/sessions/:code', (req, res) => getMatches(req, res, req.params.code, database));
 
 module.exports = app;

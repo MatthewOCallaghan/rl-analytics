@@ -9,3 +9,6 @@ rl-analytics-266421-08b9e8fb4034.json
 
 #VS Code
 .vscode
+
+postgres-statements.txt
+config.js

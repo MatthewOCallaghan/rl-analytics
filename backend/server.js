@@ -1,6 +1,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const knex = require('knex');
+
+const { DATABASE_USER, DATABASE_PASSWORD } = require('./config');
+
+const database = knex({
+	client: 'pg',
+	connection: {
+		host: '127.0.0.1',
+		user: DATABASE_USER,
+		password: DATABASE_PASSWORD,
+		database: 'rl_analytics'
+	}
+});
 
 const app = express();
 
@@ -13,6 +26,7 @@ const { getStats } = require('./controllers/scrape/stats');
 const { getSeasonRanks } = require('./controllers/scrape/ranks');
 const { getRatingDetail } = require('./controllers/scrape/mmr');
 const { getUpdates } = require('./controllers/scrape/updates');
+const { addSession } = require('./controllers/sessions');
 
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
@@ -36,5 +50,7 @@ app.get('/profile/:name/ranks', async (req, res) => await handleScrapingRequest(
 app.get('/profile/:name/mmr', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getRatingDetail));
 
 app.get('/profile/:name/updates', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getUpdates));
+
+app.post('/sessions', (req, res) => addSession(req, res, database));
 
 module.exports = app;

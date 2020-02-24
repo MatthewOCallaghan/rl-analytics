@@ -1,0 +1,20 @@
+select {
+    border-style: solid;
+    border-width: 1px;
+    color: white;
+    border-color: black;
+    background-color: black;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    transition: all 0.4s;
+    font-weight: lighter;
+}
+
+select:hover, option:hover {
+    cursor: pointer;
+}
+
+option {
+    font-weight: lighter;
+}

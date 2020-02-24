@@ -9,12 +9,51 @@ import Col from 'react-bootstrap/Col';
 import Button from '../../components/button/Button';
 import TextBox from '../../components/textbox/TextBox';
 import MatchAnalytics from '../../components/match-analytics/MatchAnalytics';
+import DropdownList from '../../components/dropdown-list/DropdownList';
 
 import './session.css';
 
 import { addMatch, getPlayer } from '../../redux/actions/matches';
 
-const base64Prefix = /^data:image\/\w+;base64,/;
+const BASE_64_PREFIX = /^data:image\/\w+;base64,/;
+
+const GAME_MODES = [
+    {
+        title: 'Ranked Duel 1v1',
+        label: 'Solo Duel',
+        players: 1
+    },
+    {
+        title: 'Ranked Doubles 2v2',
+        label: 'Doubles',
+        players: 2
+    },
+    {
+        title: 'Ranked Standard 3v3',
+        label: 'Standard',
+        players: 3
+    },
+    {
+        title: 'Ranked Solo Standard 3v3',
+        label: 'Solo Standard',
+        players: 3
+    },
+    {
+        title: 'Hoops',
+        label: 'Hoops',
+        players: 2
+    },
+    {
+        title: 'Rumble',
+        label: 'Rumble',
+        players: 3
+    },
+    {
+        title: 'Dropshot',
+        label: 'Dropshot',
+        players: 3
+    },
+];
 
 const testMatch = {
     players: [
@@ -69,30 +108,16 @@ const Session = () => {
 
     const dispatch = useDispatch();
 
-    const submitNewMatch = players => {
+    const submitNewMatch = (mode, players) => {
         const id = matches.length;
         players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
-        var mode = '';
-        switch(players[0].length) {
-            case 1:
-                mode = 'Ranked Duel 1v1';
-                break;
-            case 2:
-                mode = 'Ranked Doubles 2v2';
-                break;
-            case 3:
-                mode = 'Ranked Standard 3v3';
-                break;
-            default:
-                mode = 'Ranked Standard 3v3';
-                break;
-        }
         const match = {
             players: players.map(teamPlayers => teamPlayers.map(player => ({
                 name: player,
                 loading: true,
                 error: false
-            })))
+            }))),
+            mode
         };
         dispatch(addMatch(match));
         setView('analytics');
@@ -116,6 +141,7 @@ const AnalyticsScreen = ({ matches, navigateNewMatch }) => {
             <Row>
                 <Col xs={12}>
                     <h2>Session</h2>
+    { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
                 </Col>
             </Row>
             <Row>
@@ -139,6 +165,7 @@ const AnalyticsScreen = ({ matches, navigateNewMatch }) => {
 const NewMatch = ({ addMatch, navigateBack }) => {
     const [fileUpload, setFileUpload] = useState("");
     const [players, setPlayers] = useState([['','',''],['','','']]);
+    const [mode, setMode] = useState(GAME_MODES[0].title);
 
     const validPlayers = (players) => {
         players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
@@ -153,7 +180,7 @@ const NewMatch = ({ addMatch, navigateBack }) => {
             reader.onload = () => resolve(reader.result);
             reader.onerror = error => reject(error);
         });
-        base64 = base64.split(base64Prefix)[1];
+        base64 = base64.split(BASE_64_PREFIX)[1];
         
         fetch('http://localhost:3001/extract', {
             method: 'POST',
@@ -166,12 +193,29 @@ const NewMatch = ({ addMatch, navigateBack }) => {
         })
             .then(response => response.json())
             .then(response => response.players)
-            .then(teams => setPlayers(players.map((team, teamIndex) => team.map((player, playerIndex) => teams[teamIndex][playerIndex] || player))))
+            .then(teams => {
+                const updatedPlayers = players.map((team, teamIndex) => team.map((player, playerIndex) => teams[teamIndex][playerIndex] || player));
+                setPlayers(updatedPlayers);
+                updateMode(updatedPlayers);
+            })
             .catch(console.log);
     }
 
+    const updateMode = updatedPlayers => {
+        const number = Math.max(...updatedPlayers.map(team => team.filter(player => player.length > 0).length));
+        if (number > GAME_MODES.filter(gameModes => gameModes.title === mode)[0].players) {
+            setMode(GAME_MODES.filter(gameMode => gameMode.players === number)[0].title);
+        }
+    }
+
     const handleTypedPlayerInput = teamIndex => playerIndex => name => {
-        setPlayers(players.map((team, i) => i === teamIndex ? team.map((player, j) => j === playerIndex ? name : player): team))
+        const updatedPlayers = players.map((team, i) => i === teamIndex ? team.map((player, j) => j === playerIndex ? name : player): team);
+        setPlayers(updatedPlayers);
+        updateMode(updatedPlayers);
+    }
+
+    const handleModeChange = mode => {
+        setMode(mode);
     }
 
     return (
@@ -179,11 +223,17 @@ const NewMatch = ({ addMatch, navigateBack }) => {
             <Row>
                 <Col xs={12}>
                     <h1>New match</h1>
-                    <p>Enter each player's username, or simply take a picture of the in-game scoreboard</p>
+                    <p>Enter each player's username, or simply take a picture of the in-game scoreboard.</p>
+                    <p>Scoreboard images must include both team names and all player usernames as a minimum. For best results, minimise the amount of text included in the image that is not in the scoreboard.</p>
                     <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
                     <Button colour='black' handleOnClick={() => fileUpload.click()}>
                         Take picture
                     </Button>
+                </Col>
+            </Row>
+            <Row>
+                <Col xs={12} style={{padding: '1rem', textAlign: 'center'}}>
+                    <DropdownList value={mode} handleOnChange={handleModeChange} options={GAME_MODES.map(mode => ({value: mode.title, label: mode.label}))} />
                 </Col>
             </Row>
             <Row style={{flexGrow: 1}}>
@@ -197,7 +247,7 @@ const NewMatch = ({ addMatch, navigateBack }) => {
             <Row>
                 <Col xs={12} style={{display: 'flex', justifyContent: 'space-between'}}>
                     <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => navigateBack()}>Back</Button>
-                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => addMatch(players)} disabled={!validPlayers(players)}>Submit</Button>
+                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => addMatch(mode, players)} disabled={!validPlayers(players)}>Submit</Button>
                 </Col>
             </Row>
         </Container>

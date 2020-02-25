@@ -1,4 +1,4 @@
-import { CREATE_SESSION, LOADING_SESSION, CREATE_SESSION_FAILURE } from '../actions/session';
+import { CREATE_SESSION, LOADING_SESSION, CREATE_SESSION_FAILURE, END_SESSION } from '../actions/session';
 
 const session = (state = {}, action) => {
     switch(action.type) {
@@ -8,6 +8,8 @@ const session = (state = {}, action) => {
             return { loading: true };
         case CREATE_SESSION_FAILURE:
             return { error: true };
+        case END_SESSION:
+            return {};
         default:
             return state;
     }

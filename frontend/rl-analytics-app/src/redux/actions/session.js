@@ -1,6 +1,7 @@
 export const CREATE_SESSION = 'SESSION__CREATE_SESSION';
 export const LOADING_SESSION = 'SESSION__LOADING_SESSION';
 export const CREATE_SESSION_FAILURE = 'SESSION_CREATE_SESSION_FAILURE';
+export const END_SESSION = 'SESSION__END_SESSION';
 
 export const createSession = () => {
     return dispatch => {
@@ -22,3 +23,7 @@ export const createSession = () => {
         })
     }
 }
+
+export const endSession = () => ({
+    type: END_SESSION
+});

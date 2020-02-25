@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import fetch from 'unfetch';
 import { useSelector, useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 import Layout from '../../components/layout/Layout';
 import Container from 'react-bootstrap/Container';
@@ -14,7 +15,7 @@ import DropdownList from '../../components/dropdown-list/DropdownList';
 import './session.css';
 
 import { addMatch, getPlayer } from '../../redux/actions/matches';
-import { createSession } from '../../redux/actions/session';
+import { createSession, endSession } from '../../redux/actions/session';
 
 const BASE_64_PREFIX = /^data:image\/\w+;base64,/;
 
@@ -114,7 +115,7 @@ const Session = () => {
         if(Object.entries(session).length === 0) {
             dispatch(createSession());
         }
-    }, []);
+    }, [dispatch, session]);
 
     const submitNewMatch = (mode, players) => {
         const id = matches.length;
@@ -139,7 +140,7 @@ const Session = () => {
             { (session.loading || session.error) && <LoadingSessionScreen loading={session.loading} error={session.error} />}
             { session.token && 
                 (view === 'analytics'
-                    ?   <AnalyticsScreen code={session.code} matches={matches} navigateNewMatch={() => setView('new')} />
+                    ?   <AnalyticsScreen code={session.code} matches={matches} navigateNewMatch={() => setView('new')} endSession={() => dispatch(endSession())} />
                     :   <NewMatch navigateBack={() => setView('analytics')} addMatch={submitNewMatch} />)
             }
         </Layout>
@@ -155,9 +156,9 @@ const LoadingSessionScreen = ({ loading, error }) => {
     );
 }
 
-const AnalyticsScreen = ({ matches, navigateNewMatch, code }) => {
+const AnalyticsScreen = ({ matches, navigateNewMatch, code, endSession }) => {
     return (
-        <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%'}}>
+        <Container className='session-container'>
             <Row>
                 <Col xs={12}>
                     <h2>Session code: {code}</h2>
@@ -174,7 +175,8 @@ const AnalyticsScreen = ({ matches, navigateNewMatch, code }) => {
                 </Col>
             </Row>
             <Row>
-                <Col xs={12} style={{textAlign: 'right'}}>
+                <Col xs={12} className='session-button-row'>
+                    <Link to='/' style={{minWidth: '25%'}}><Button colour='black' style={{minWidth: '100%'}} ghost large handleOnClick={() => endSession()}>End session</Button></Link>
                     <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => navigateNewMatch()}>New match</Button>
                 </Col>
             </Row>
@@ -239,7 +241,7 @@ const NewMatch = ({ addMatch, navigateBack }) => {
     }
 
     return (
-        <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%'}}>
+        <Container className='session-container'>
             <Row>
                 <Col xs={12}>
                     <h1>New match</h1>
@@ -265,7 +267,7 @@ const NewMatch = ({ addMatch, navigateBack }) => {
                 </Col>
             </Row>
             <Row>
-                <Col xs={12} style={{display: 'flex', justifyContent: 'space-between'}}>
+                <Col xs={12} className='session-button-row'>
                     <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => navigateBack()}>Back</Button>
                     <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => addMatch(mode, players)} disabled={!validPlayers(players)}>Submit</Button>
                 </Col>

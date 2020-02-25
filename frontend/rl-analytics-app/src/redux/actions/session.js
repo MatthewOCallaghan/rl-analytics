@@ -1,3 +1,5 @@
+import fetch from 'unfetch';
+
 export const CREATE_SESSION = 'SESSION__CREATE_SESSION';
 export const LOADING_SESSION = 'SESSION__LOADING_SESSION';
 export const CREATE_SESSION_FAILURE = 'SESSION_CREATE_SESSION_FAILURE';

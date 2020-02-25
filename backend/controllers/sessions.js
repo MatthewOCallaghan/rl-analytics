@@ -99,7 +99,7 @@ const addMatch = (req, res, database) => {
             } else {
                 database.select('code').from('sessions').where('id', '=', sessionId).first()
                     .then(code => {
-                        code = code[0];
+                        code = code.code;
                         if (code === req.params.code) {
                             database.transaction(trx => {
                                 return trx.insert({
@@ -114,7 +114,10 @@ const addMatch = (req, res, database) => {
                                 });
                             })
                             .then(inserts => {
-                                res.json(inserts.map(player => ({name: player.name, platform: player.platform})));
+                                res.json({
+                                    players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform }); return acc; }, [[], []]),//.map(player => ({name: player.name, platform: player.platform})),
+                                    mode: req.body.mode
+                                });
                             })
                             .catch(err => {
                                 console.log(err);

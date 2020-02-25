@@ -14,7 +14,7 @@ import DropdownList from '../../components/dropdown-list/DropdownList';
 
 import './session.css';
 
-import { addMatch, getPlayer } from '../../redux/actions/matches';
+import { addMatch } from '../../redux/actions/matches';
 import { createSession, endSession } from '../../redux/actions/session';
 
 const BASE_64_PREFIX = /^data:image\/\w+;base64,/;
@@ -105,7 +105,8 @@ const testMatch = {
 
 const Session = () => {
     const [view, setView] = useState('analytics'); //analytics, new
-    // const [matches, setMatches] = useState([testMatch]);
+    const [awaitingSubmit, setAwaitingSubmit] = useState(false);
+
     const matches = useSelector(store => store.matches);
     const session = useSelector(store => store.session);
 
@@ -118,43 +119,56 @@ const Session = () => {
     }, [dispatch, session]);
 
     const submitNewMatch = (mode, players) => {
-        const id = matches.length;
         players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
         const match = {
             players: players.map(teamPlayers => teamPlayers.map(player => ({
-                name: player,
-                loading: true,
-                error: false
+                name: player
             }))),
             mode
         };
         dispatch(addMatch(match));
+        setAwaitingSubmit(true);
+    }
+
+    if(awaitingSubmit && !matches.loading) {
         setView('analytics');
-        players.forEach((teamPlayers, teamIndex) => teamPlayers.forEach((player, playerIndex) => {
-            dispatch(getPlayer(id, teamIndex, playerIndex, mode, player));
-        }));
+        setAwaitingSubmit(false);
     }
 
     return (
         <Layout>
-            { (session.loading || session.error) && <LoadingSessionScreen loading={session.loading} error={session.error} />}
+            { session.loading && <LoadingSessionScreen /> }
+            { session.error && <ErrorSessionScreen back={() => dispatch(endSession())} /> }
             { session.token && 
                 (view === 'analytics'
-                    ?   <AnalyticsScreen code={session.code} matches={matches} navigateNewMatch={() => setView('new')} endSession={() => dispatch(endSession())} />
-                    :   <NewMatch navigateBack={() => setView('analytics')} addMatch={submitNewMatch} />)
+                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} navigateNewMatch={() => setView('new')} endSession={() => dispatch(endSession())} />
+                    :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatch={submitNewMatch} />)
             }
         </Layout>
     );
 }
 
-const LoadingSessionScreen = ({ loading, error }) => {
-    return (
-        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%'}} >
-            {loading && <p>Creating session...</p>}
-            {error && <p>Sorry, there was an error creating the session...</p>}
-        </div>
-    );
-}
+const LoadingSessionScreen = () => (
+    <div style={{padding: '5%', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%'}} >
+        <p>Creating session...</p>
+    </div>
+);
+
+const ErrorSessionScreen = ({ back }) => (
+    <Container className='session-container'>
+        <Row></Row>
+        <Row>
+            <Col xs={12}>
+                <h2 style={{color: 'red'}}>Sorry, there was an error creating the session...</h2>
+            </Col>
+        </Row>
+        <Row>
+            <Col xs={12} className='session-button-row'>
+                <Link to='/' style={{minWidth: '25%'}}><Button colour='black' style={{minWidth: '100%'}} ghost large handleOnClick={() => back()}>Back</Button></Link>
+            </Col>
+        </Row>
+    </Container>
+);
 
 const AnalyticsScreen = ({ matches, navigateNewMatch, code, endSession }) => {
     return (
@@ -184,7 +198,7 @@ const AnalyticsScreen = ({ matches, navigateNewMatch, code, endSession }) => {
     );
 }
 
-const NewMatch = ({ addMatch, navigateBack }) => {
+const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
     const [fileUpload, setFileUpload] = useState("");
     const [players, setPlayers] = useState([['','',''],['','','']]);
     const [mode, setMode] = useState(GAME_MODES[0].title);
@@ -248,41 +262,45 @@ const NewMatch = ({ addMatch, navigateBack }) => {
                     <p>Enter each player's username, or simply take a picture of the in-game scoreboard.</p>
                     <p>Scoreboard images must include both team names and all player usernames as a minimum. For best results, minimise the amount of text included in the image that is not in the scoreboard.</p>
                     <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
-                    <Button colour='black' handleOnClick={() => fileUpload.click()}>
+                    <Button colour='black' disabled={loading} handleOnClick={() => fileUpload.click()}>
                         Take picture
                     </Button>
                 </Col>
             </Row>
             <Row>
                 <Col xs={12} style={{padding: '1rem', textAlign: 'center'}}>
-                    <DropdownList value={mode} handleOnChange={handleModeChange} options={GAME_MODES.map(mode => ({value: mode.title, label: mode.label}))} />
+                    <DropdownList disabled={loading} value={mode} handleOnChange={handleModeChange} options={GAME_MODES.map(mode => ({value: mode.title, label: mode.label}))} />
                 </Col>
             </Row>
             <Row style={{flexGrow: 1}}>
                 <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
-                    <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} />
+                    <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} disabled={loading}/>
                 </Col>
                 <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
-                    <TeamBox team='ORANGE' players={players[1]} handlePlayerInput={handleTypedPlayerInput(1)} />
+                    <TeamBox team='ORANGE' players={players[1]} handlePlayerInput={handleTypedPlayerInput(1)} disabled={loading} />
                 </Col>
             </Row>
+            {
+                error &&
+                    <Row><Col xs={12} style={{color: 'red', textAlign: 'center'}}><p>Sorry, there was an error submitting the match. Please try again.</p></Col></Row>
+            }
             <Row>
                 <Col xs={12} className='session-button-row'>
-                    <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => navigateBack()}>Back</Button>
-                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => addMatch(mode, players)} disabled={!validPlayers(players)}>Submit</Button>
+                    <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => navigateBack()} disabled={loading} >Back</Button>
+                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => addMatch(mode, players)} disabled={!validPlayers(players) || loading}>Submit</Button>
                 </Col>
             </Row>
         </Container>
     );
 }
 
-const TeamBox = ({ team, handlePlayerInput, players }) => {
+const TeamBox = ({ team, handlePlayerInput, players, disabled }) => {
     return (
         <div className='team-input' style={{backgroundColor: team}}>
             <h2>{team}</h2>
-            <TextBox value={players[0]} style={{width: '70%'}} handleOnChange={handlePlayerInput(0)} />
-            <TextBox value={players[1]} style={{width: '70%'}} handleOnChange={handlePlayerInput(1)} />
-            <TextBox value={players[2]} style={{width: '70%'}} handleOnChange={handlePlayerInput(2)} />
+            <TextBox value={players[0]} style={{width: '70%'}} handleOnChange={handlePlayerInput(0)} disabled={disabled} />
+            <TextBox value={players[1]} style={{width: '70%'}} handleOnChange={handlePlayerInput(1)} disabled={disabled} />
+            <TextBox value={players[2]} style={{width: '70%'}} handleOnChange={handlePlayerInput(2)} disabled={disabled} />
         </div>
     );
 }

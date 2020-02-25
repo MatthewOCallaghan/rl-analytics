@@ -10,6 +10,9 @@ import Col from 'react-bootstrap/Col';
 
 import './landing.css';
 
+const SESSION_CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const SESSION_CODE_LENGTH = 6;
+
 const particlesOptions = {
     particles: {
       number: {
@@ -26,7 +29,7 @@ const Landing = () => {
     const [sessionId, setSessionId] = useState('');
 
     const handleTextBoxChange = sessionId => {
-        setSessionId(sessionId);
+        setSessionId(sessionId.substring(0,SESSION_CODE_LENGTH).toUpperCase().replace(new RegExp(`[^${SESSION_CODE_CHARS}]`, 'g'), ''));
     }
 
     return (
@@ -50,7 +53,7 @@ const Landing = () => {
                         <Box colour='orange' style={{marginTop: 20}}>
                             <h2>Display</h2>
                             <p>Enter the session ID to view it</p>
-                            <TextBox handleOnChange={handleTextBoxChange} />
+                            <TextBox value={sessionId} handleOnChange={handleTextBoxChange} style={{textTransform: 'uppercase'}} />
                             <Button colour='orange' disabled={!sessionId.length} style={{width: '100%'}}>View session</Button>
                         </Box>
                     </Col>

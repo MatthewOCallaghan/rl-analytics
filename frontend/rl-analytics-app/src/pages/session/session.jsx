@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import fetch from 'unfetch';
 import { useSelector, useDispatch } from 'react-redux';
 
@@ -14,6 +14,7 @@ import DropdownList from '../../components/dropdown-list/DropdownList';
 import './session.css';
 
 import { addMatch, getPlayer } from '../../redux/actions/matches';
+import { createSession } from '../../redux/actions/session';
 
 const BASE_64_PREFIX = /^data:image\/\w+;base64,/;
 
@@ -105,8 +106,15 @@ const Session = () => {
     const [view, setView] = useState('analytics'); //analytics, new
     // const [matches, setMatches] = useState([testMatch]);
     const matches = useSelector(store => store.matches);
+    const session = useSelector(store => store.session);
 
     const dispatch = useDispatch();
+
+    useEffect(() => {
+        if(Object.entries(session).length === 0) {
+            dispatch(createSession());
+        }
+    }, []);
 
     const submitNewMatch = (mode, players) => {
         const id = matches.length;
@@ -128,20 +136,32 @@ const Session = () => {
 
     return (
         <Layout>
-            {view === 'analytics'
-                ?   <AnalyticsScreen matches={matches} navigateNewMatch={() => setView('new')} />
-                :   <NewMatch navigateBack={() => setView('analytics')} addMatch={submitNewMatch} />}
+            { (session.loading || session.error) && <LoadingSessionScreen loading={session.loading} error={session.error} />}
+            { session.token && 
+                (view === 'analytics'
+                    ?   <AnalyticsScreen code={session.code} matches={matches} navigateNewMatch={() => setView('new')} />
+                    :   <NewMatch navigateBack={() => setView('analytics')} addMatch={submitNewMatch} />)
+            }
         </Layout>
     );
 }
 
-const AnalyticsScreen = ({ matches, navigateNewMatch }) => {
+const LoadingSessionScreen = ({ loading, error }) => {
+    return (
+        <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%'}} >
+            {loading && <p>Creating session...</p>}
+            {error && <p>Sorry, there was an error creating the session...</p>}
+        </div>
+    );
+}
+
+const AnalyticsScreen = ({ matches, navigateNewMatch, code }) => {
     return (
         <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%'}}>
             <Row>
                 <Col xs={12}>
-                    <h2>Session</h2>
-    { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
+                    <h2>Session code: {code}</h2>
+                    { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
                 </Col>
             </Row>
             <Row>

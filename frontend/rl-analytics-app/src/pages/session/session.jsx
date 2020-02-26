@@ -4,12 +4,12 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 
 import Layout from '../../components/layout/Layout';
+import AnalyticsScreen from '../../components/analytics-screen/AnalyticsScreen';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from '../../components/button/Button';
 import TextBox from '../../components/textbox/TextBox';
-import MatchAnalytics from '../../components/match-analytics/MatchAnalytics';
 import DropdownList from '../../components/dropdown-list/DropdownList';
 
 import './session.css';
@@ -141,7 +141,7 @@ const Session = () => {
             { session.error && <ErrorSessionScreen back={() => dispatch(endSession())} /> }
             { session.token && 
                 (view === 'analytics'
-                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} navigateNewMatch={() => setView('new')} endSession={() => dispatch(endSession())} />
+                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText='Next match' primaryButtonAction={() => setView('new')} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} />
                     :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatch={submitNewMatch} />)
             }
         </Layout>
@@ -149,7 +149,7 @@ const Session = () => {
 }
 
 const LoadingSessionScreen = () => (
-    <div style={{padding: '5%', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%'}} >
+    <div className='container-vertically-centre' >
         <p>Creating session...</p>
     </div>
 );
@@ -169,34 +169,6 @@ const ErrorSessionScreen = ({ back }) => (
         </Row>
     </Container>
 );
-
-const AnalyticsScreen = ({ matches, navigateNewMatch, code, endSession }) => {
-    return (
-        <Container className='session-container'>
-            <Row>
-                <Col xs={12}>
-                    <h2>Session code: {code}</h2>
-                    { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
-                </Col>
-            </Row>
-            <Row>
-                <Col xs={12}>
-                    {
-                        matches.length === 0
-                            ?   <p>No matches played yet...</p>
-                            :   <MatchAnalytics match={matches[matches.length - 1]} />
-                    }
-                </Col>
-            </Row>
-            <Row>
-                <Col xs={12} className='session-button-row'>
-                    <Link to='/' style={{minWidth: '25%'}}><Button colour='black' style={{minWidth: '100%'}} ghost large handleOnClick={() => endSession()}>End session</Button></Link>
-                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => navigateNewMatch()}>New match</Button>
-                </Col>
-            </Row>
-        </Container>
-    );
-}
 
 const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
     const [fileUpload, setFileUpload] = useState("");

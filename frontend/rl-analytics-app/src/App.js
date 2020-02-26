@@ -19,6 +19,7 @@ function App() {
           <Switch>
             <Route exact path='/' component={Landing} />
             <Route path='/session' component={Session} />
+            <Route path='/display/:code' component={Display} />
             <Route path='/display' component={Display} />
           </Switch>
         </PersistGate>

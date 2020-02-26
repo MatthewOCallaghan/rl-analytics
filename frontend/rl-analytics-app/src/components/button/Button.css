@@ -36,6 +36,16 @@ button {
     color: black;
 }
 
+.button-white, button.button-white.button-ghost:hover {
+    background-color: white;
+    border-color: white;
+    color: black;
+}
+
+.button-white:hover:not(.button-disabled):not(.button-ghost), .button-white.button-ghost {
+    color: white;
+}
+
 button:hover:not(.button-disabled) {
     background-color: transparent;
     cursor: pointer;

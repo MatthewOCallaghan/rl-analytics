@@ -8,10 +8,9 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
-import './landing.css';
+import { handleTextBoxChange, isSessionCodeFormatValid } from '../display/display';
 
-const SESSION_CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-const SESSION_CODE_LENGTH = 6;
+import './landing.css';
 
 const particlesOptions = {
     particles: {
@@ -27,10 +26,6 @@ const particlesOptions = {
 
 const Landing = () => {
     const [sessionId, setSessionId] = useState('');
-
-    const handleTextBoxChange = sessionId => {
-        setSessionId(sessionId.substring(0,SESSION_CODE_LENGTH).toUpperCase().replace(new RegExp(`[^${SESSION_CODE_CHARS}]`, 'g'), ''));
-    }
 
     return (
         <div id='landing-container'>
@@ -52,9 +47,13 @@ const Landing = () => {
                         </Box>
                         <Box colour='orange' style={{marginTop: 20}}>
                             <h2>Display</h2>
-                            <p>Enter the session ID to view it</p>
-                            <TextBox value={sessionId} handleOnChange={handleTextBoxChange} style={{textTransform: 'uppercase'}} />
-                            <Button colour='orange' disabled={!sessionId.length} style={{width: '100%'}}>View session</Button>
+                            <p>Enter the session code to view it</p>
+                            <TextBox value={sessionId} handleOnChange={handleTextBoxChange(setSessionId)} style={{textTransform: 'uppercase'}} />
+                            {
+                                isSessionCodeFormatValid(sessionId)
+                                    ?   <Link to={`/display/${sessionId}`}><Button colour='orange' style={{width: '100%'}}>View session</Button></Link>
+                                    :   <Button colour='orange' disabled style={{width: '100%'}}>View session</Button>
+                            }
                         </Box>
                     </Col>
                 </Row>

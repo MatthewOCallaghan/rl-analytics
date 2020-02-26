@@ -7,7 +7,7 @@ import { persistStore, persistReducer } from "redux-persist";
 
 import reducer from "./reducers";
 
-const persistConfig = { key: "root", storage, whitelist: [] };
+const persistConfig = { key: "root", storage, whitelist: ['session', 'matches'] };
 
 const persistedReducer = persistReducer(persistConfig, reducer);
 

@@ -6,7 +6,7 @@ import Col from 'react-bootstrap/Col';
 import Spinner from 'react-bootstrap/Spinner';
 import { Ranks } from '../../images';
 
-import './MatchAnalytics.css';
+import './PlayerTable.css';
 
 const Analytics = ({ match }) => {
     return (

@@ -1,0 +1,20 @@
+#code-prompt {
+    background-color: black;
+    border-radius: 10px;
+    color: white;
+    max-width: 75%;
+    min-width: 50%;
+    padding: 1rem;
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#code-prompt > input {
+    margin: 1rem auto;
+}
+
+#invalid-code-message {
+    color: red;
+}

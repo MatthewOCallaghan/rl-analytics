@@ -8,6 +8,8 @@ const CODE_LENGTH = 6;
 
 const AUTH_FORMAT = /^Bearer .*$/;
 
+const isSessionCodeFormatValid = code => code.length === CODE_LENGTH && code.replace(new RegExp(`[^${CODE_CHARS}]`, 'g'), '').length === code.length;
+
 const GAME_MODES = [
     {
         title: 'Ranked Duel 1v1',
@@ -138,41 +140,45 @@ const addMatch = (req, res, database) => {
 }
 
 const getMatches = (req, res, code, database) => {
-    database.select('sessions.code', 'matches.id', 'players.name', 'players.platform', 'players.team', 'matches.start_time', 'matches.mode')
-    .from('sessions', 'matches', 'players')
-    .leftOuterJoin('matches', 'sessions.id', 'matches.session_id')
-    .leftOuterJoin('players', 'matches.id', 'players.match_id')
-    .where('sessions.code', '=', code)
-    .then(data => {
-        if (data.length === 0) { // If no records returned, code does not exist
-            res.status(400).send('Session does not exist');
-        } else if (data.length === 1) { // If one record returned, code exists but no matches played yet
-            res.json([]);
-        } else { // If more than one record exists, code exists and matches played
-            const matches = {};
-            data.forEach(player => {
-                const newPlayer = {
-                    name: player.name
-                };
-                if(player.platform) {
-                    newPlayer.platform = player.platform;
-                }
-                if(!matches[player.id]) {
-                    matches[player.id] = {
-                        players: [[], []],
-                        startTime: player.start_time,
-                        mode: player.mode
+    if(isSessionCodeFormatValid(code)) {
+        database.select('sessions.code', 'matches.id', 'players.name', 'players.platform', 'players.team', 'matches.start_time', 'matches.mode')
+        .from('sessions', 'matches', 'players')
+        .leftOuterJoin('matches', 'sessions.id', 'matches.session_id')
+        .leftOuterJoin('players', 'matches.id', 'players.match_id')
+        .where('sessions.code', '=', code)
+        .then(data => {
+            if (data.length === 0) { // If no records returned, code does not exist
+                res.status(400).send('Session does not exist');
+            } else if (data.length === 1) { // If one record returned, code exists but no matches played yet
+                res.json([]);
+            } else { // If more than one record exists, code exists and matches played
+                const matches = {};
+                data.forEach(player => {
+                    const newPlayer = {
+                        name: player.name
                     };
-                }
-                matches[player.id].players[player.team].push(newPlayer);
-            });
-            res.json(Object.values(matches).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)));
-        }
-    })
-    .catch(err => {
-        console.log(err);
-        res.sendStatus(500);
-    });
+                    if(player.platform) {
+                        newPlayer.platform = player.platform;
+                    }
+                    if(!matches[player.id]) {
+                        matches[player.id] = {
+                            players: [[], []],
+                            startTime: player.start_time,
+                            mode: player.mode
+                        };
+                    }
+                    matches[player.id].players[player.team].push(newPlayer);
+                });
+                res.json(Object.values(matches).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)));
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+        });
+    } else {
+        res.status(400).send('Session does not exist');
+    }
 }
 
 const checkTokenExists = (req, res, next) => {

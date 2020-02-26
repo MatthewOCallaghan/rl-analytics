@@ -48,7 +48,12 @@ handleScrapingRequest = async (res, name, platform, fcn) => {
     }
     Promise.all(platforms.map(platform => getPlatformData(name, platform, fcn)))
         .then(data => data.filter(platform => platform != null))
-        .then(data => res.json(data));
+        .then(data => res.json(data))
+        .catch(err => {
+            console.log(name);
+            console.log(platform);
+            console.log(err);
+        });
 }
 
 getPlatformData = async (name, platform, fcn) => {

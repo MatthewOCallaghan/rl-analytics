@@ -9,16 +9,16 @@ button {
     font-weight: lighter;
 }
 
-.button-orange {
+.button-orange, button.button-orange.button-ghost:hover:not(.button-disabled) {
     background-color: orange;
     border-color: orange;
 }
 
-.button-orange:hover:not(.button-disabled), .button-orange.button-ghost {
+.button-orange:hover:not(.button-disabled), .button-orange.button-ghost:not(.button-disabled) {
     color: orange;
 }
 
-.button-blue {
+.button-blue, button.button-blue.button-ghost:hover:not(.button-disabled) {
     background-color: blue;
     border-color: blue;
 }
@@ -27,7 +27,7 @@ button {
     color: blue;
 }
 
-.button-black, button.button-black.button-ghost:hover {
+.button-black, button.button-black.button-ghost:hover:not(.button-disabled) {
     background-color: black;
     border-color: black;
 }
@@ -36,7 +36,7 @@ button {
     color: black;
 }
 
-.button-white, button.button-white.button-ghost:hover {
+.button-white, button.button-white.button-ghost:hover:not(.button-disabled) {
     background-color: white;
     border-color: white;
     color: black;

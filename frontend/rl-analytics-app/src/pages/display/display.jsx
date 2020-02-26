@@ -26,14 +26,14 @@ const Display = ({ match }) => {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if(code) {
+        if(code && !display.invalidCode) {
             dispatch(getMatches(code));
             const interval = setInterval(() => {
                 dispatch(getMatches(code));
             }, 15000);
             return () => clearInterval(interval);
         }
-    }, [dispatch, code]);
+    }, [dispatch, code, display.invalidCode]);
 
     return (
         <Layout>

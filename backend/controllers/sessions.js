@@ -10,7 +10,7 @@ const AUTH_FORMAT = /^Bearer .*$/;
 
 const isSessionCodeFormatValid = code => code.length === CODE_LENGTH && code.replace(new RegExp(`[^${CODE_CHARS}]`, 'g'), '').length === code.length;
 
-const GAME_MODES = [
+const GAME_MODES = [ 
     {
         title: 'Ranked Duel 1v1',
         label: 'Solo Duel',

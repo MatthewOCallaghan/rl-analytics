@@ -3,17 +3,26 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const knex = require('knex');
 
-const { DATABASE_USER, DATABASE_PASSWORD } = require('./config');
-
-const database = knex({
+const DATABASE_CONFIG = {
 	client: 'pg',
 	connection: {
+		connectionString: process.env.DATABASE_URL,
+		ssl: true,
+	}
+}
+
+if (!process.env.DATABASE_URL) {
+	const { DATABASE_USER, DATABASE_PASSWORD } = require('./config');
+
+	DATABASE_CONFIG.connection = {
 		host: '127.0.0.1',
 		user: DATABASE_USER,
 		password: DATABASE_PASSWORD,
 		database: 'rl_analytics'
 	}
-});
+}
+
+const database = knex(DATABASE_CONFIG);
 
 const app = express();
 

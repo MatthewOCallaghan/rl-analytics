@@ -11,7 +11,7 @@ const DATABASE_CONFIG = {
 	}
 }
 
-if (!process.env.DATABASE_URL) {
+if (process.env.NODE_ENV !== 'production') {
 	const { DATABASE_USER, DATABASE_PASSWORD } = require('./config');
 
 	DATABASE_CONFIG.connection = {

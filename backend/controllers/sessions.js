@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-const { JWT_KEY, JWT_ISSUER, JWT_AUDIENCE } = require('../config.js');
+const JWT_KEY = process.env.JWT_KEY || require('../config.js').JWT_KEY;
+
+const JWT_ISSUER = process.env.JWT_ISSUER || require('../config.js').JWT_ISSUER;
+
+const JWT_AUDIENCE = process.env.JWT_AUDIENCE || require('../config.js').JWT_AUDIENCE;
 
 const CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 

@@ -7,8 +7,6 @@
 
 const vision = require('@google-cloud/vision');
 
-const GOOGLE_APPLICATION_CREDENTIALS = `rl-analytics-266421-08b9e8fb4034.json`;
-
 const KEYWORDS = ['COMPETITIVE', 'SCORE', 'GOALS', 'ASSISTS', 'SAVES', 'SHOTS', 'PING', 'SCORED', 'BY', 'YOU'];                                                                                                                                                                                                               // From OG PLAYER, as OG can get lost if deemed to start before team name
 const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', 'ALL-STAR', 'SUPERSTAR', 'AIRHEAD', 'ANIMATOR', 'DEVELOPER', 'MODERATOR', 'BALLISTIC', 'FLOATER', 'GOALTENDER', 'LEADFOOT', 'RECKLESS', 'SHERPA', 'SHOWBOAT', 'SKYLORD', 'STEAMROLLER', 'TRAILBLAZER', 'WALL-CRAWLER', 'WHEELER', 'DEMOGORGON', 'COUCH-POTATO', 'COMMITTED', 'JUGGLER', 'PLAYER'];
 const TEAM_ABBREVIATION = /[\[\(][A-Z0-9\*]{1,4}[\]\)]$/; // Just matches end of word rather than whole word in case avatar text gets merged in
@@ -23,7 +21,22 @@ const handleExtractUsernames = async (req, res) => {
 }
 
 const extractUsernamesFromImage = async image => {
-    const client = new vision.ImageAnnotatorClient({keyFilename: GOOGLE_APPLICATION_CREDENTIALS});
+    var config;
+    if(process.env.NODE_ENV !== 'production') {
+        config = {
+            keyFilename: require('../config').GOOGLE_APPLICATION_CREDENTIALS
+        };
+    } else {
+        config = {
+            credentials: {
+                client_email: process.env.GCV_CLIENT_EMAIL, 
+                private_key: process.env.GCV_PRIVATE_KEY
+            }
+        };
+    }
+    
+    const client = new vision.ImageAnnotatorClient(config);
+    
     const request = {
         image: {
             content: image

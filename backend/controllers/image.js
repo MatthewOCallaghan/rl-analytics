@@ -12,12 +12,12 @@ const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', '
 const TEAM_ABBREVIATION = /[\[\(][A-Z0-9\*]{1,4}[\]\)]$/; // Just matches end of word rather than whole word in case avatar text gets merged in
 
 const handleExtractUsernames = async (req, res) => {
-    // const data = await extractUsernamesFromImage(req.body.image);
     extractUsernamesFromImage(req.body.image)
     .then(data => res.json(data))
-    .catch(err => res.json(err));
-    
-    // res.json(data);
+    .catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
 }
 
 const extractUsernamesFromImage = async image => {
@@ -30,13 +30,12 @@ const extractUsernamesFromImage = async image => {
         config = {
             credentials: {
                 client_email: process.env.GCV_CLIENT_EMAIL, 
-                private_key: process.env.GCV_PRIVATE_KEY
+                private_key: `-----BEGIN PRIVATE KEY-----\n${process.env.GCV_PRIVATE_KEY.replace(/\\n/g,'\n')}\n-----END PRIVATE KEY-----\n`
             }
         };
     }
-    
+
     const client = new vision.ImageAnnotatorClient(config);
-    
     const request = {
         image: {
             content: image

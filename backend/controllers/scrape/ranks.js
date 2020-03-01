@@ -78,9 +78,6 @@ const processRanksData = data => {
                                             mode.games = {
                                                 count: parseInt(removeCommas(removeNestedHTML(row[column].html).trim())),
                                             };
-                                            if(mode.games.count === 401) {
-                                                console.log('Here');
-                                            }
                                             const streak = row[column].small;
                                             if (streak) {
                                                 const match = streak.match(STREAK_REGEX);

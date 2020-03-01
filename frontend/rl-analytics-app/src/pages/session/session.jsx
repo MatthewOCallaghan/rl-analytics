@@ -120,10 +120,19 @@ const Session = () => {
 
     const submitNewMatch = (mode, players) => {
         players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
+        const previousPlayersArray = matches.matches.map(match => match.players.map(teamPlayers => teamPlayers.map(player => ({name: player.name, platform: player.platform})))).flat(Infinity);
+        const previousPlayers = {};
+        previousPlayersArray.forEach(player => previousPlayers[player.name] = player.platform);
         const match = {
-            players: players.map(teamPlayers => teamPlayers.map(player => ({
-                name: player
-            }))),
+            players: players.map(teamPlayers => teamPlayers.map(player => {
+                const playerObject = {
+                    name: player
+                };
+                if (previousPlayers[player]) {
+                    playerObject.platform = previousPlayers[player];
+                }
+                return playerObject;
+            })),
             mode
         };
         dispatch(addMatch(match));
@@ -131,7 +140,9 @@ const Session = () => {
     }
 
     if(awaitingSubmit && !matches.loading) {
-        setView('analytics');
+        if (!matches.error) {
+            setView('analytics');
+        }
         setAwaitingSubmit(false);
     }
 
@@ -177,7 +188,7 @@ const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
 
     const validPlayers = (players) => {
         players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
-        return players[0].length > 0 && players[1].length === players[0].length;
+        return players[0].length > 0 && players[1].length === players[0].length && players[0].length === GAME_MODES.filter(gameMode => gameMode.title === mode)[0].players;
     }
 
     const handleImage = async event => {

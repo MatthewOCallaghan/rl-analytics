@@ -61,6 +61,9 @@ const FormChart = ({ players }) => {
                             display: true, 
                             labelString: 'MMR', 
                             fontSize: 15
+                        },
+                        ticks: {
+                            precision: 0
                         }
                     }]
                 }

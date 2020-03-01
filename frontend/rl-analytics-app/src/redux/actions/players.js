@@ -12,6 +12,7 @@ export const getPlayer = (successType, errorType, matchIndex, teamIndex, playerI
                     if (platforms.length === 0) {
                         return Promise.reject(new Error(`${player} does not exist`));
                     }
+                    platforms[0].data.platform = platforms[0].platform;
                     return platforms[0].data;
                 })
                 .then(playerData => {
@@ -20,6 +21,19 @@ export const getPlayer = (successType, errorType, matchIndex, teamIndex, playerI
                     const [goals, saves, assists] = ['Goals', 'Saves', 'Assists'].map(type => playstyleData.filter(data => data.name === type)[0].y);
                     const playstyleSum = goals + saves + assists;
                     const [rank, division] = modeData.rank.split('Division');
+
+                    const mmrOverTime = playerData.mmr.filter(data => data.name === mode)[0].data;
+                    const currentDate = new Date();
+                    const processedMmrOverTime = mmrOverTime.categories.map((stringDate, index) => {
+                        const date = new Date(stringDate);
+                        if (date.getMonth() > currentDate.getMonth()) {
+                            date.setFullYear(currentDate.getFullYear() - 1);
+                        } else {
+                            date.setFullYear(currentDate.getFullYear());
+                        }
+                        return { date, value: mmrOverTime.rating[index] };
+                    });
+
                     const playerDetails = {
                         name: player,
                         loading: false,  // Determine above what mode we're playing and then get selected data (also which season)
@@ -29,7 +43,10 @@ export const getPlayer = (successType, errorType, matchIndex, teamIndex, playerI
                         games: modeData.games.count,
                         mvpWinPercentage: playerData.stats.filter(stat => stat.name === 'MVP/Win %')[0].value,
                         rank: rank.trim(),
-                        division: division.trim()
+                        division: division.trim(),
+                        platform: playerData.platform,
+                        streak: modeData.games.streak,
+                        mmrOverTime: processedMmrOverTime
                     };
                     if(modeData.divDown) {
                         playerDetails.divDown = modeData.divDown;

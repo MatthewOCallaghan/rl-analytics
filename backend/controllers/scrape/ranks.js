@@ -1,5 +1,7 @@
 const { scrape } = require('./scrape');
 
+const STREAK_REGEX = /^(Win|Losing) Streak: (\d+)$/;
+
 const ranksScrape = scrape('div.season-table',
 [
     { 
@@ -75,8 +77,20 @@ const processRanksData = data => {
                                         } else {
                                             mode.games = {
                                                 count: parseInt(removeCommas(removeNestedHTML(row[column].html).trim())),
-                                                streak: row[column].small
                                             };
+                                            if(mode.games.count === 401) {
+                                                console.log('Here');
+                                            }
+                                            const streak = row[column].small;
+                                            if (streak) {
+                                                const match = streak.match(STREAK_REGEX);
+                                                if (match.length >= 3) {
+                                                    mode.games.streak = {
+                                                        length: match[2],
+                                                        type: match[1].charAt(0)
+                                                    }
+                                                }
+                                            }
                                         }
                                         break;
                                     default:

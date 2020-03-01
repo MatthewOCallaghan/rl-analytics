@@ -14,7 +14,7 @@ const interpolateValue = (pointBefore, pointAfter, date) => {
 }
 
 const FormChart = ({ players }) => {
-    const playerData = players.map((teamPlayers, teamIndex) => teamPlayers.filter(player => !player.loading && !player.error).map((player, playerIndex) => ({name: player.name, data: player.mmrOverTime.map(point => ({date: new Date(point.date), value: point.value})), colour: COLOURS[teamIndex][playerIndex]}))).flat();
+    const playerData = players.map((teamPlayers, teamIndex) => teamPlayers.filter(player => !player.loading && !player.error && player.mmrOverTime && player.mmrOverTime.length > 0).map((player, playerIndex) => ({name: player.name, data: player.mmrOverTime.map(point => ({date: new Date(point.date), value: point.value})), colour: COLOURS[teamIndex][playerIndex]}))).flat();
 
     const labels = playerData.map(player => player.data.map(point => point.date)).flat().map(date => date.getTime()).filter((date, index, array) => array.indexOf(date) === index).map(time => new Date(time)).sort((a, b) => a-b);
 

@@ -190,7 +190,7 @@ const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
         });
         base64 = base64.split(BASE_64_PREFIX)[1];
         
-        fetch('http://localhost:3001/extract', {
+        fetch(`${process.env.REACT_APP_API_URL}/extract`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json"

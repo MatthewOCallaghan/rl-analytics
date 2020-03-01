@@ -12,7 +12,7 @@ export const addMatch = match => {
     return (dispatch, getState) => {
         dispatch({ type: LOADING_NEW_MATCH });
         const state = getState();
-        fetch(`http://localhost:3001/sessions/${state.session.code}`, {
+        fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}`, {
             method: 'post',
             headers: {
                 authorization: `Bearer ${state.session.token}`,

@@ -11,7 +11,6 @@ import Session from './pages/session/session';
 import { store, persistor } from './redux/store';
 
 function App() {
-
   return (
     <Provider store={store}>
       <BrowserRouter>

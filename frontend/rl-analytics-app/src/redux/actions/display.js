@@ -10,7 +10,7 @@ export const LOADING_PLAYER_FAILURE = 'DISPLAY__LOADING_PLAYER_FAILURE';
 
 export const getMatches = code => {
     return (dispatch, getState) => {
-        fetch(`http://localhost:3001/sessions/${code}`)
+        fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}`)
         .then(response => {
             if(!response.ok) {
                 if(response.status === 400) {

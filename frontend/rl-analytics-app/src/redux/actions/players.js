@@ -1,6 +1,6 @@
 export const getPlayer = (successType, errorType, matchIndex, teamIndex, playerIndex, mode, player, platform) => {
     return dispatch => {
-        fetch(`http://localhost:3001/profile/${player}${platform ? `?platform=${platform}` : ''}`)
+        fetch(`${process.env.REACT_APP_API_URL}/profile/${player}${platform ? `?platform=${platform}` : ''}`)
                 .then(response => {
                     if (!response.ok) {
                         return Promise.reject(new Error(response.statusText));

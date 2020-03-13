@@ -48,17 +48,17 @@ app.get('/', (req, res) => {
 
 app.post('/extract', async (req, res) => await image.handleExtractUsernames(req, res));
 
-app.get('/profile/:name', async (req, res) => await handleGetAllProfileData(res, req.params.name, req.query.platform));
+app.get('/profile/:name', async (req, res) => await handleGetAllProfileData(res, req.params.name.replace(' ', '%20'), req.query.platform));
 
-app.get('/profile/:name/charts', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getChartData));
+app.get('/profile/:name/charts', async (req, res) => await handleScrapingRequest(res, req.params.name.replace(' ', '%20'), req.query.platform, getChartData));
 
-app.get('/profile/:name/stats', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getStats));
+app.get('/profile/:name/stats', async (req, res) => await handleScrapingRequest(res, req.params.name.replace(' ', '%20'), req.query.platform, getStats));
 
-app.get('/profile/:name/ranks', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getSeasonRanks));
+app.get('/profile/:name/ranks', async (req, res) => await handleScrapingRequest(res, req.params.name.replace(' ', '%20'), req.query.platform, getSeasonRanks));
 
-app.get('/profile/:name/mmr', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getRatingDetail));
+app.get('/profile/:name/mmr', async (req, res) => await handleScrapingRequest(res, req.params.name.replace(' ', '%20'), req.query.platform, getRatingDetail));
 
-app.get('/profile/:name/updates', async (req, res) => await handleScrapingRequest(res, req.params.name, req.query.platform, getUpdates));
+app.get('/profile/:name/updates', async (req, res) => await handleScrapingRequest(res, req.params.name.replace(' ', '%20'), req.query.platform, getUpdates));
 
 app.post('/sessions', (req, res) => addSession(req, res, database));
 

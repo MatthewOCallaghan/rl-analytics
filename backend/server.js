@@ -62,7 +62,7 @@ app.get('/profile/:name/updates', async (req, res) => await handleScrapingReques
 
 app.post('/sessions', (req, res) => addSession(req, res, database));
 
-app.post('/sessions/:code', checkTokenExists, (req, res) => addMatch(req, res, database));
+app.post('/sessions/:code', checkTokenExists, async (req, res) => await addMatch(req, res, database));
 
 app.get('/sessions/:code', (req, res) => getMatches(req, res, req.params.code, database));
 

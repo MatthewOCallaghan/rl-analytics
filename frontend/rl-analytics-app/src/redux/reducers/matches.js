@@ -10,7 +10,7 @@ const matches = (state = { matches: [], loading: false, error: false }, action) 
         case ADD_MATCH_FAILURE:
             return { ...state, loading: false, error: true };
         case LOADING_NEW_MATCH:
-            return { loading: true, error: false, ...state };
+            return { ...state, loading: true, error: false };
         case GET_PLAYER:
             return { ...state, matches: state.matches.map((match, index) => index === action.matchIndex ? { ...match, players: match.players.map((teamPlayers, index) => index === action.teamIndex ? teamPlayers.map((player, index) => index === action.playerIndex ? action.player : player) : teamPlayers) } : match) };
         case LOADING_PLAYER_FAILURE:

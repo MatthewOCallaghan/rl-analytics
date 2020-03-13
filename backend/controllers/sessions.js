@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { extractUsernamesFromImage } = require('./image');
 
 const JWT_KEY = process.env.JWT_KEY || require('../config.js').JWT_KEY;
 
@@ -91,53 +92,65 @@ const addSession = (req, res, database) => {
     .catch(err => res.status(500).send(err));
 }
 
-const addMatch = (req, res, database) => {
-    jwt.verify(req.token, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, (err, data) => {
+const addMatch = async (req, res, database) => {
+    jwt.verify(req.token, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, async (err, data) => {
         if(err) {
             res.sendStatus(403);
         } else {
             const sessionId = data.id;
-            var players = req.body.players;
-            if(!(players && Array.isArray(players) && players.length === 2 && Array.isArray(players[0]) && Array.isArray(players[1]) && players[0].length === players[1].length && players[0].length <= 3 && players[0].length > 0 && players[0].concat(players[1]).every(player => player.name && (Object.entries(player).length === 1 || player.platform)))) {
-                res.status(400).send('Invalid players list');
-            } else if (!(req.body.mode && GAME_MODES.map(mode => mode.title).includes(req.body.mode) && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === players[0].length)) {
+
+            if (!(req.body.mode && GAME_MODES.map(mode => mode.title).includes(req.body.mode))) {
                 res.status(400).send('Invalid mode');            
             } else {
-                database.select('code').from('sessions').where('id', '=', sessionId).first()
-                    .then(code => {
-                        code = code.code;
-                        if (code === req.params.code) {
-                            database.transaction(trx => {
-                                return trx.insert({
-                                    session_id: sessionId,
-                                    mode: req.body.mode
-                                }, 'id')
-                                .into('matches')
-                                .then(matchId => {
-                                    matchId = matchId[0];
-                                    players = players.map((teamPlayers, index) => teamPlayers.map(player => ({...player, match_id: matchId, team: index})));
-                                    return trx.insert(players[0].concat(players[1])).into('players').returning('*');
+                var players;
+                if (req.body.players) {
+                    if(!(players && Array.isArray(players) && players.length === 2 && Array.isArray(players[0]) && Array.isArray(players[1]) && players[0].length === players[1].length && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === players[0].length && players[0].length <= 3 && players[0].length > 0 && players[0].concat(players[1]).every(player => player.name && (Object.entries(player).length === 1 || player.platform)))) {
+                        res.status(400).send('Invalid players list');
+                    } else {
+                        players = req.body.players;
+                    }
+                } else if (req.body.image) {
+                    const teamSize = GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players;
+                    players = (await extractUsernamesFromImage(req.body.image)).players.map(teamPlayers => teamPlayers.slice(0,teamSize).map(player => ({name: player})));
+                } else {
+                    res.status(400).send('Requires player list or scoreboard image');
+                }
+                if (players !== null) {
+                    database.select('code').from('sessions').where('id', '=', sessionId).first()
+                        .then(code => {
+                            code = code.code;
+                            if (code === req.params.code) {
+                                database.transaction(trx => {
+                                    return trx.insert({
+                                        session_id: sessionId,
+                                        mode: req.body.mode
+                                    }, 'id')
+                                    .into('matches')
+                                    .then(matchId => {
+                                        matchId = matchId[0];
+                                        players = players.map((teamPlayers, index) => teamPlayers.map(player => ({...player, match_id: matchId, team: index})));
+                                        return trx.insert(players[0].concat(players[1])).into('players').returning('*');
+                                    });
+                                })
+                                .then(inserts => {
+                                    res.json({
+                                        players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform }); return acc; }, [[], []]),//.map(player => ({name: player.name, platform: player.platform})),
+                                        mode: req.body.mode
+                                    });
+                                })
+                                .catch(err => {
+                                    console.log(err);
+                                    res.sendStatus(500);
                                 });
-                            })
-                            .then(inserts => {
-                                res.json({
-                                    players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform }); return acc; }, [[], []]),//.map(player => ({name: player.name, platform: player.platform})),
-                                    mode: req.body.mode
-                                });
-                            })
-                            .catch(err => {
-                                console.log(err);
-                                res.sendStatus(500);
-                            });
-                        } else {
-                            res.sendStatus(403);
-                        }
-                    })
-                    .catch(err => {
-                        console.log(err);
-                        res.sendStatus(500);
-                    })
-                
+                            } else {
+                                res.sendStatus(403);
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            res.sendStatus(500);
+                        })
+                }
             }
         }
     });

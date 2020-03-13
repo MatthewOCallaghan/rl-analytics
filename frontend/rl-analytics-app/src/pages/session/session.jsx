@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import fetch from 'unfetch';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 
@@ -139,6 +138,28 @@ const Session = () => {
         setAwaitingSubmit(true);
     }
 
+    const submitImage = (mode, image) => {
+        dispatch(addMatch({mode, image}));
+        setAwaitingSubmit(true);
+        // fetch(`${process.env.REACT_APP_API_URL}/extract`, {
+        //     method: 'POST',
+        //     headers: {
+        //         "Content-Type": "application/json"
+        //     },
+        //     body: JSON.stringify({
+        //         image: base64
+        //     })
+        // })
+        //     .then(response => response.json())
+        //     .then(response => response.players)
+        //     .then(teams => {
+        //         const updatedPlayers = players.map((team, teamIndex) => team.map((player, playerIndex) => teams[teamIndex][playerIndex] || player));
+        //         setPlayers(updatedPlayers);
+        //         updateMode(updatedPlayers);
+        //     })
+        //     .catch(console.log);
+    }
+
     if(awaitingSubmit && !matches.loading) {
         if (!matches.error) {
             setView('analytics');
@@ -153,7 +174,7 @@ const Session = () => {
             { session.token && 
                 (view === 'analytics'
                     ?   <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText='Next match' primaryButtonAction={() => setView('new')} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} />
-                    :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatch={submitNewMatch} />)
+                    :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatchWithUsernames={submitNewMatch} addMatchWithImage={submitImage} />)
             }
         </Layout>
     );
@@ -181,10 +202,11 @@ const ErrorSessionScreen = ({ back }) => (
     </Container>
 );
 
-const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
+const NewMatch = ({ addMatchWithUsernames, addMatchWithImage, navigateBack, loading, error }) => {
     const [fileUpload, setFileUpload] = useState("");
     const [players, setPlayers] = useState([['','',''],['','','']]);
     const [mode, setMode] = useState(GAME_MODES[0].title);
+    const [lastSubmission, setLastSubmission] = useState(null); //image, usernames
 
     const validPlayers = (players) => {
         players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
@@ -200,24 +222,8 @@ const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
             reader.onerror = error => reject(error);
         });
         base64 = base64.split(BASE_64_PREFIX)[1];
-        
-        fetch(`${process.env.REACT_APP_API_URL}/extract`, {
-            method: 'POST',
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                image: base64
-            })
-        })
-            .then(response => response.json())
-            .then(response => response.players)
-            .then(teams => {
-                const updatedPlayers = players.map((team, teamIndex) => team.map((player, playerIndex) => teams[teamIndex][playerIndex] || player));
-                setPlayers(updatedPlayers);
-                updateMode(updatedPlayers);
-            })
-            .catch(console.log);
+        setLastSubmission('image');
+        addMatchWithImage(mode, base64);
     }
 
     const updateMode = updatedPlayers => {
@@ -243,24 +249,6 @@ const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
                 <Col xs={12}>
                     <h1>New match</h1>
                     <p>Enter each player's username, or simply take a picture of the in-game scoreboard.</p>
-                    <p>Scoreboard images must include both team names and all player usernames as a minimum. For best results, minimise the amount of text included in the image that is not in the scoreboard.</p>
-                    <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
-                    <Button colour='black' disabled={loading} handleOnClick={() => fileUpload.click()}>
-                        Take picture
-                    </Button>
-                </Col>
-            </Row>
-            <Row>
-                <Col xs={12} style={{padding: '1rem', textAlign: 'center'}}>
-                    <DropdownList disabled={loading} value={mode} handleOnChange={handleModeChange} options={GAME_MODES.map(mode => ({value: mode.title, label: mode.label}))} />
-                </Col>
-            </Row>
-            <Row style={{flexGrow: 1}}>
-                <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
-                    <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} disabled={loading}/>
-                </Col>
-                <Col xs={{ span: 10, offset: 1 }} sm={{span: 6, offset:0}}>
-                    <TeamBox team='ORANGE' players={players[1]} handlePlayerInput={handleTypedPlayerInput(1)} disabled={loading} />
                 </Col>
             </Row>
             {
@@ -268,9 +256,31 @@ const NewMatch = ({ addMatch, navigateBack, loading, error }) => {
                     <Row><Col xs={12} style={{color: 'red', textAlign: 'center'}}><p>Sorry, there was an error submitting the match. Please try again.</p></Col></Row>
             }
             <Row>
+                <Col xs={12} style={{padding: '1rem', textAlign: 'center'}}>
+                    <DropdownList disabled={loading} value={mode} handleOnChange={handleModeChange} options={GAME_MODES.map(mode => ({value: mode.title, label: mode.label}))} />
+                </Col>
+            </Row>
+            <Row>
+                <Col xs = {12} >
+                    <Box colour='blue'>
+                        <h2>Take picture</h2>
+                        <p>Scoreboard images must include both team names and all player usernames as a minimum. For best results, minimise the amount of text included in the image that is not in the scoreboard.</p>
+                        <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
+                        <Button colour='black' disabled={loading} handleOnClick={() => fileUpload.click()} loading={loading && lastSubmission === 'image'}>
+                            Take picture
+                        </Button>
+                    </Box>
+                    <Box colour='orange' style={{marginTop: 20}}>
+                        <h2>Enter usernames</h2>
+                        <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} disabled={loading}/>
+                        <TeamBox team='ORANGE' players={players[1]} handlePlayerInput={handleTypedPlayerInput(1)} disabled={loading} />
+                        <Button colour='black' handleOnClick={() => { setLastSubmission('usernames'); addMatchWithUsernames(mode, players); }} disabled={!validPlayers(players) || loading} loading={loading && lastSubmission === 'usernames'}>Submit</Button>
+                    </Box>
+                </Col>
+            </Row>
+            <Row>
                 <Col xs={12} className='session-button-row'>
                     <Button colour='black' style={{minWidth: '25%'}} ghost large handleOnClick={() => navigateBack()} disabled={loading} >Back</Button>
-                    <Button colour='black' style={{minWidth: '25%'}} large handleOnClick={() => addMatch(mode, players)} disabled={!validPlayers(players) || loading}>Submit</Button>
                 </Col>
             </Row>
         </Container>
@@ -284,6 +294,14 @@ const TeamBox = ({ team, handlePlayerInput, players, disabled }) => {
             <TextBox value={players[0]} style={{width: '70%'}} handleOnChange={handlePlayerInput(0)} disabled={disabled} />
             <TextBox value={players[1]} style={{width: '70%'}} handleOnChange={handlePlayerInput(1)} disabled={disabled} />
             <TextBox value={players[2]} style={{width: '70%'}} handleOnChange={handlePlayerInput(2)} disabled={disabled} />
+        </div>
+    );
+}
+
+const Box = ({ colour, children, style }) => {
+    return (
+        <div className='new-match-box' style={{borderColor: colour, ...style}}>
+            {children}
         </div>
     );
 }

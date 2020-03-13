@@ -5,9 +5,21 @@
     height: 100%;
 }
 
+.new-match-box {
+    border-width: 1px;
+    border-style: solid;
+    padding: 2%;
+    border-radius: 10px;
+}
+
+.new-match-box h2 {
+    margin-top: 0;
+}
+
 .session-button-row {
     display: flex;
     justify-content: space-between;
+    margin-top: 20px;
 }
 
 .team-input {

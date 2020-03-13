@@ -4,7 +4,7 @@ import { getPlayer } from './players';
 
 export const ADD_MATCH = 'MATCHES__ADD_MATCH';
 export const ADD_MATCH_FAILURE = 'MATCHES__ADD_MATCH_FAILURE';
-export const LOADING_NEW_MATCH = 'LOADING__NEW_MATCH';
+export const LOADING_NEW_MATCH = 'MATCHES__LOADING_NEW_MATCH';
 export const GET_PLAYER = 'MATCHES__GET_PLAYER';
 export const LOADING_PLAYER_FAILURE = 'MATCHES__LOADING_PLAYER_FAILURE';
 

@@ -352,7 +352,8 @@ const removeDuplicatePlayers = players => {
 }
 
 module.exports = {
-    handleExtractUsernames
+    handleExtractUsernames,
+    extractUsernamesFromImage
 }
 
 

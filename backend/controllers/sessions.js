@@ -104,7 +104,7 @@ const addMatch = async (req, res, database) => {
             } else {
                 var players;
                 if (req.body.players) {
-                    if(!(players && Array.isArray(players) && players.length === 2 && Array.isArray(players[0]) && Array.isArray(players[1]) && players[0].length === players[1].length && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === players[0].length && players[0].length <= 3 && players[0].length > 0 && players[0].concat(players[1]).every(player => player.name && (Object.entries(player).length === 1 || player.platform)))) {
+                    if(!(req.body.players && Array.isArray(req.body.players) && req.body.players.length === 2 && Array.isArray(req.body.players[0]) && Array.isArray(req.body.players[1]) && req.body.players[0].length === req.body.players[1].length && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === req.body.players[0].length && req.body.players[0].length <= 3 && req.body.players[0].length > 0 && req.body.players[0].concat(req.body.players[1]).every(player => player.name && (Object.entries(player).length === 1 || player.platform)))) {
                         res.status(400).send('Invalid players list');
                     } else {
                         players = req.body.players;
@@ -115,7 +115,7 @@ const addMatch = async (req, res, database) => {
                 } else {
                     res.status(400).send('Requires player list or scoreboard image');
                 }
-                if (players !== null) {
+                if (players !== undefined) {
                     database.select('code').from('sessions').where('id', '=', sessionId).first()
                         .then(code => {
                             code = code.code;

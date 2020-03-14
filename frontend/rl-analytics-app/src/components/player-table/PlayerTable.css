@@ -40,3 +40,16 @@ table.player-table img {
     width: 2rem;
     height: 2rem;
 }
+
+.modal-content {
+    border: none;
+    border-radius: 10px;
+    background-color: transparent;
+}
+
+.edit-username-modal {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 10px;
+    padding: 20px;
+}

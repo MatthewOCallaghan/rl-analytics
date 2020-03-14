@@ -10,7 +10,7 @@ import FormChart from '../../components/form-chart/FormChart';
 
 import './AnalyticsScreen.css';
 
-const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction }) => {
+const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction, host }) => {
     return (
         <Container className='session-container' fluid>
             <Row>
@@ -26,7 +26,7 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
                         ?   <Col xs={12}><p>No matches played yet...</p></Col>
                         :   <>
                                 <Col xs={12} xl={8}>
-                                    <PlayerTable match={matches[matches.length - 1]} />
+                                    <PlayerTable match={matches[matches.length - 1]} canEdit={host} />
                                 </Col>
                                 <Col xs={12} xl={4} style={{paddingBottom: '1rem'}}>
                                     <h2>Form</h2>

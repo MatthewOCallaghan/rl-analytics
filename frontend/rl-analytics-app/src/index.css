@@ -34,3 +34,7 @@ code {
   justify-content: center;
   height: 100%;
 }
+
+.pointer-on-hover:hover {
+  cursor: pointer;
+}

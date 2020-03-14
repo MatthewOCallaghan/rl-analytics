@@ -1,20 +1,51 @@
 import React from 'react';
+import { useState } from 'react';
 
 import Spinner from 'react-bootstrap/Spinner';
+import Modal from 'react-bootstrap/Modal';
+import EditIcon from '@material-ui/icons/EditRounded';
+import TextBox from '../textbox/TextBox';
+import Button from '../button/Button';
 import { Ranks } from '../../images';
 
 import './PlayerTable.css';
 
-const Analytics = ({ match }) => {
+const Analytics = ({ match, canEdit }) => {
+    const [editing, setEditing] = useState(null);
+    const [textBoxValue, setTextBoxValue] = useState('');
+
+    const handleSetEditing = team => player => {
+        if (player === null ) {
+            setEditing(null);
+            setTextBoxValue('');
+        } else {
+            setEditing([team, player]);
+            setTextBoxValue(match.players[team][player].name);
+        }
+    }
+
     return (
         <section id='analytics'>
-            <Team name='BLUE' players={match.players[0]} season={match.season} colour='blue' />
-            <Team name='ORANGE' players={match.players[1]} season={match.season} colour='orange' />
+            <Modal show={editing !== null} onHide={() => setEditing(null)} centered>
+                {
+                    editing &&
+                    <div className='edit-username-modal' style={{borderColor: editing[0] === 0 ? 'blue' : 'orange', backgroundColor: editing[0] === 0 ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'}}>
+                        <h2 style={{color: editing[0] === 0 ? 'blue' : 'orange'}}>Edit username</h2>
+                        <TextBox value={textBoxValue} handleOnChange={username => setTextBoxValue(username)} style={editing[0] === 0 ? {backgroundColor: 'black', color: 'white'} : {}} />
+                        <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 10}}>
+                            <Button colour={editing[0] === 0 ? 'blue' : 'orange'} ghost handleOnClick={() => setEditing(null)}>Back</Button>
+                            <Button colour={editing[0] === 0 ? 'blue' : 'orange'} disabled={textBoxValue === match.players[editing[0]][editing[1]].name} handleOnClick={() => console.log(textBoxValue)}>Submit</Button>
+                        </div>
+                    </div>
+                }
+            </Modal>
+            <Team name='BLUE' players={match.players[0]} season={match.season} setEditing={handleSetEditing(0)} canEdit={canEdit} colour='blue' />
+            <Team name='ORANGE' players={match.players[1]} season={match.season} setEditing={handleSetEditing(1)} canEdit={canEdit} colour='orange' />
         </section>
     );
 }
 
-const Team = ({ name, players, colour, season }) => {
+const Team = ({ name, players, colour, season, setEditing, canEdit }) => {
     return (
         <>
             <h2 style={{color: colour}}>{name}</h2>
@@ -55,7 +86,7 @@ const Team = ({ name, players, colour, season }) => {
                                         }
                                     </div>
                                 </td>
-                                <td><span style={{color: player.error ? 'red' : undefined}}>{player.name}</span></td>
+                                <td><div style={{display: 'inline-flex'}}><span style={{color: player.error ? 'red' : undefined}}>{player.name}</span>{canEdit && <span className='pointer-on-hover' style={{marginLeft: 3}} onClick={() => setEditing(index)}><EditIcon /></span>}</div></td>
                                 <td>{player.mmr}</td>
                                 <td>{player.playstyle}</td>
                                 <td>{player.games}</td>

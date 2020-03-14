@@ -173,7 +173,7 @@ const Session = () => {
             { session.error && <ErrorSessionScreen back={() => dispatch(endSession())} /> }
             { session.token && 
                 (view === 'analytics'
-                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText='Next match' primaryButtonAction={() => setView('new')} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} />
+                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText='Next match' primaryButtonAction={() => setView('new')} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} host={true} />
                     :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatchWithUsernames={submitNewMatch} addMatchWithImage={submitImage} />)
             }
         </Layout>

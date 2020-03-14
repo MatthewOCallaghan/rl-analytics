@@ -14,7 +14,7 @@ button {
     border-color: orange;
 }
 
-.button-orange:hover:not(.button-disabled), .button-orange.button-ghost:not(.button-disabled) {
+.button-orange:hover:not(.button-disabled):not(.button-ghost), .button-orange.button-ghost:not(.button-disabled):not(:hover) {
     color: orange;
 }
 
@@ -23,7 +23,7 @@ button {
     border-color: blue;
 }
 
-.button-blue:hover:not(.button-disabled), .button-blue.button-ghost {
+.button-blue:hover:not(.button-disabled):not(.button-ghost), .button-blue.button-ghost {
     color: blue;
 }
 

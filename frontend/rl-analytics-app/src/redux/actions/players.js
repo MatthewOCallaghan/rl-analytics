@@ -25,11 +25,11 @@ export const getPlayer = (successType, errorType, matchIndex, teamIndex, playerI
                     const mmrOverTime = playerData.mmr.filter(data => data.name === mode)[0].data;
                     const currentDate = new Date();
                     const processedMmrOverTime = mmrOverTime.categories.map((stringDate, index) => {
-                        const date = new Date(stringDate);
+                        var date = new Date(stringDate);
                         if (date.getMonth() > currentDate.getMonth()) {
-                            date.setFullYear(currentDate.getFullYear() - 1);
+                            date = new Date(`${stringDate} ${currentDate.getFullYear() - 1}`);
                         } else {
-                            date.setFullYear(currentDate.getFullYear());
+                            date = new Date(`${stringDate} ${currentDate.getFullYear()}`);
                         }
                         return { date, value: mmrOverTime.rating[index] };
                     });

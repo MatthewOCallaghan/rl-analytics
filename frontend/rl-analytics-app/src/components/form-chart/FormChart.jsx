@@ -17,7 +17,7 @@ const FormChart = ({ players }) => {
     const playerData = players.map((teamPlayers, teamIndex) => teamPlayers.filter(player => !player.loading && !player.error && player.mmrOverTime && player.mmrOverTime.length > 0).map((player, playerIndex) => ({name: player.name, data: player.mmrOverTime.map(point => ({date: new Date(point.date), value: point.value})), colour: COLOURS[teamIndex][playerIndex]}))).flat();
 
     const labels = playerData.map(player => player.data.map(point => point.date)).flat().map(date => date.getTime()).filter((date, index, array) => array.indexOf(date) === index).map(time => new Date(time)).sort((a, b) => a-b);
-
+    
     const datasets = playerData.map(player => {
         var i = 0;
         const data = labels.map(date => {
@@ -27,10 +27,12 @@ const FormChart = ({ players }) => {
                 }
                 return interpolateValue(player.data[i-1], player.data[i], date);
             } else if (date.getTime() === player.data[i].date.getTime()) {
-                i++;
+                if(i < player.data.length - 1) {
+                    i++;
+                }
                 return player.data[i-1].value;
             } else {
-                console.log('How did we get here?!');
+                return player.data[i].value;
             }
         });
         return {
@@ -42,9 +44,9 @@ const FormChart = ({ players }) => {
             pointRadius: 0
         };
     });
-
-    const data = {labels: labels.map(date => `${date.getDate()}/${date.getMonth()}/${date.getFullYear().toString().slice(2)}`), datasets};
-
+    
+    const data = {labels: labels.map(date => `${date.getDate()}/${date.getMonth()+1}/${date.getFullYear().toString().slice(2)}`), datasets};
+    
     return (
         <Line
             data={data}

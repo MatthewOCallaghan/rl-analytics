@@ -35,12 +35,26 @@ const { getStats } = require('./controllers/scrape/stats');
 const { getSeasonRanks } = require('./controllers/scrape/ranks');
 const { getRatingDetail } = require('./controllers/scrape/mmr');
 const { getUpdates } = require('./controllers/scrape/updates');
-const { addSession, addMatch, getMatches, checkTokenExists } = require('./controllers/sessions');
+const { addSession, addMatch, getMatches, checkTokenExists, editUsername } = require('./controllers/sessions');
+
+const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://localhost:3000'];
+
+const CORS_OPTIONS = {
+	origin: (origin, callback) => {
+		if(origin && !ALLOWED_ORIGINS.includes(origin)) {
+			return callback(new Error('Access from specified origin blocked by CORS policy'), false);
+		}
+		return callback(null, true);
+	},
+	// methods: ['GET', 'POST', 'PATCH'],
+	// preflightContinue: true,
+	// credentials: true
+};
 
 app.use(bodyParser.json({limit: "50mb"}));
 app.use(bodyParser.urlencoded({limit: "50mb", extended: true, parameterLimit:50000}));
 
-app.use(cors());
+app.use(cors(CORS_OPTIONS));
 
 app.get('/', (req, res) => {
 	res.send("It's working!");
@@ -65,5 +79,8 @@ app.post('/sessions', (req, res) => addSession(req, res, database));
 app.post('/sessions/:code', checkTokenExists, async (req, res) => await addMatch(req, res, database));
 
 app.get('/sessions/:code', (req, res) => getMatches(req, res, req.params.code, database));
+
+app.options('/sessions/:code/:match/:team/:player', cors(CORS_OPTIONS));
+app.put('/sessions/:code/:match/:team/:player', checkTokenExists, (req, res) => editUsername(req, res, database));
 
 module.exports = app;

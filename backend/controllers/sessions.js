@@ -13,7 +13,11 @@ const CODE_LENGTH = 6;
 
 const AUTH_FORMAT = /^Bearer .*$/;
 
+const INTEGER_REGEX = /^\d+$/;
+
 const isSessionCodeFormatValid = code => code.length === CODE_LENGTH && code.replace(new RegExp(`[^${CODE_CHARS}]`, 'g'), '').length === code.length;
+
+const PLATFORMS = ['ps', 'steam', 'xbox'];
 
 const GAME_MODES = [ 
     {
@@ -92,6 +96,51 @@ const addSession = (req, res, database) => {
     .catch(err => res.status(500).send(err));
 }
 
+const editUsername = (req, res, database) => {
+    jwt.verify(req.token, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, (err, data) => {
+        if(err) {
+            res.sendStatus(403);
+            console.log(err);
+        } else {
+            const sessionId = data.id;
+            
+            if(!(req.body.name && (!req.body.platform || PLATFORMS.includes(req.body.platform)))) {
+                res.status(400).send('Invalid name or platform');
+            } else if (!INTEGER_REGEX.test(req.params.match)) {
+                res.status(400).send('Invalid match id');
+            } else if (req.params.team !== '0' && req.params.team !== '1') {
+                res.status(400).send('Invalid team index');
+            } else if (req.body.name) {
+                database.select('code')
+                        .from('sessions').innerJoin('matches', 'sessions.id', 'matches.session_id').innerJoin('players', 'players.match_id', 'matches.id')
+                        .where('sessions.id', '=', sessionId).andWhere('matches.id', '=', req.params.match).andWhere('players.team', '=', req.params.team).andWhere('players.id', '=', req.params.player)
+                        .first()
+                        .then(code => {
+                            code = code.code;
+                            if (code === req.params.code) {
+                                database('players')
+                                    .returning('*')
+                                    .where('id', '=', req.params.player)
+                                    .update({ name: req.body.name, platform: req.body.platform || undefined })
+                                    .then(player => res.json(player[0]))
+                                    .catch(err => {
+                                        console.log(err);
+                                        res.sendStatus(500);
+                                    });
+                            } else {
+                                res.sendStatus(403);
+                                console.log('Wrong code');
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            res.sendStatus(500);
+                        });
+            }
+        }
+    });
+}
+
 const addMatch = async (req, res, database) => {
     jwt.verify(req.token, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, async (err, data) => {
         if(err) {
@@ -104,7 +153,7 @@ const addMatch = async (req, res, database) => {
             } else {
                 var players;
                 if (req.body.players) {
-                    if(!(req.body.players && Array.isArray(req.body.players) && req.body.players.length === 2 && Array.isArray(req.body.players[0]) && Array.isArray(req.body.players[1]) && req.body.players[0].length === req.body.players[1].length && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === req.body.players[0].length && req.body.players[0].length <= 3 && req.body.players[0].length > 0 && req.body.players[0].concat(req.body.players[1]).every(player => player.name && (Object.entries(player).length === 1 || player.platform)))) {
+                    if(!(req.body.players && Array.isArray(req.body.players) && req.body.players.length === 2 && Array.isArray(req.body.players[0]) && Array.isArray(req.body.players[1]) && req.body.players[0].length === req.body.players[1].length && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === req.body.players[0].length && req.body.players[0].length <= 3 && req.body.players[0].length > 0 && req.body.players[0].concat(req.body.players[1]).every(player => player.name && (Object.entries(player).length === 1 || (player.platform && PLATFORMS.includes(player.platform)))))) {
                         res.status(400).send('Invalid players list');
                     } else {
                         players = req.body.players;
@@ -134,8 +183,9 @@ const addMatch = async (req, res, database) => {
                                 })
                                 .then(inserts => {
                                     res.json({
-                                        players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform }); return acc; }, [[], []]),//.map(player => ({name: player.name, platform: player.platform})),
-                                        mode: req.body.mode
+                                        players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform, id: player.id }); return acc; }, [[], []]),
+                                        mode: req.body.mode,
+                                        id: inserts[0].match_id
                                     });
                                 })
                                 .catch(err => {
@@ -218,5 +268,6 @@ module.exports = {
     addSession,
     addMatch,
     getMatches,
+    editUsername,
     checkTokenExists
 }

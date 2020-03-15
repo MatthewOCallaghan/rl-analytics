@@ -1,4 +1,4 @@
-import { GET_PLAYER, LOADING_PLAYER_FAILURE, ADD_MATCH, ADD_MATCH_FAILURE, LOADING_NEW_MATCH } from '../actions/matches';
+import { GET_PLAYER, LOADING_PLAYER_FAILURE, ADD_MATCH, ADD_MATCH_FAILURE, LOADING_NEW_MATCH, EDIT_USERNAME } from '../actions/matches';
 import { END_SESSION } from '../actions/session';
 
 const matches = (state = { matches: [], loading: false, error: false }, action) => {
@@ -12,9 +12,11 @@ const matches = (state = { matches: [], loading: false, error: false }, action) 
         case LOADING_NEW_MATCH:
             return { ...state, loading: true, error: false };
         case GET_PLAYER:
-            return { ...state, matches: state.matches.map((match, index) => index === action.matchIndex ? { ...match, players: match.players.map((teamPlayers, index) => index === action.teamIndex ? teamPlayers.map((player, index) => index === action.playerIndex ? action.player : player) : teamPlayers) } : match) };
+            return { ...state, matches: state.matches.map((match, index) => index === action.matchIndex ? { ...match, players: match.players.map((teamPlayers, index) => index === action.teamIndex ? teamPlayers.map((player, index) => index === action.playerIndex ? { ...player, ...action.player, loading: false, error: false } : player) : teamPlayers) } : match) };
         case LOADING_PLAYER_FAILURE:
             return { ...state, matches: state.matches.map((match, index) => index === action.matchIndex ? { ...match, players: match.players.map((teamPlayers, index) => index === action.teamIndex ? teamPlayers.map((player, index) => index === action.playerIndex ? { ...player, loading: false, error: true } : player): teamPlayers)} : match) };
+        case EDIT_USERNAME:
+            return { ...state, matches: state.matches.map(match => match.id === action.match ? { ...match, players: match.players.map((teamPlayers, index) => index === action.team ? teamPlayers.map(player => player.id === action.player ? { id: player.id, name: action.newUsername, loading: true, error: false } : player): teamPlayers)} : match) };
         default:
             return state;
     }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import Spinner from 'react-bootstrap/Spinner';
 import Modal from 'react-bootstrap/Modal';
@@ -8,11 +9,14 @@ import TextBox from '../textbox/TextBox';
 import Button from '../button/Button';
 import { Ranks } from '../../images';
 
+import { editUsername } from '../../redux/actions/matches';
+
 import './PlayerTable.css';
 
 const Analytics = ({ match, canEdit }) => {
     const [editing, setEditing] = useState(null);
     const [textBoxValue, setTextBoxValue] = useState('');
+    const dispatch = useDispatch();
 
     const handleSetEditing = team => player => {
         if (player === null ) {
@@ -22,6 +26,12 @@ const Analytics = ({ match, canEdit }) => {
             setEditing([team, player]);
             setTextBoxValue(match.players[team][player].name);
         }
+    }
+
+    const submitNewUsername = () => {
+        dispatch(editUsername(match.id, editing[0], match.players[editing[0]][editing[1]].id, textBoxValue));
+        setEditing(null);
+        setTextBoxValue('');
     }
 
     return (
@@ -34,7 +44,7 @@ const Analytics = ({ match, canEdit }) => {
                         <TextBox value={textBoxValue} handleOnChange={username => setTextBoxValue(username)} style={editing[0] === 0 ? {backgroundColor: 'black', color: 'white'} : {}} />
                         <div style={{display: 'flex', justifyContent: 'space-between', marginTop: 10}}>
                             <Button colour={editing[0] === 0 ? 'blue' : 'orange'} ghost handleOnClick={() => setEditing(null)}>Back</Button>
-                            <Button colour={editing[0] === 0 ? 'blue' : 'orange'} disabled={textBoxValue === match.players[editing[0]][editing[1]].name} handleOnClick={() => console.log(textBoxValue)}>Submit</Button>
+                            <Button colour={editing[0] === 0 ? 'blue' : 'orange'} disabled={textBoxValue === match.players[editing[0]][editing[1]].name} handleOnClick={() => submitNewUsername()}>Submit</Button>
                         </div>
                     </div>
                 }

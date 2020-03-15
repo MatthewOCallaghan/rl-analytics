@@ -35,9 +35,7 @@ export const getPlayer = (successType, errorType, matchIndex, teamIndex, playerI
                     });
 
                     const playerDetails = {
-                        name: player,
-                        loading: false,  // Determine above what mode we're playing and then get selected data (also which season)
-                        error: false,
+                        name: player, // Determine above what mode we're playing and then get selected data (also which season)
                         mmr: modeData.rating,
                         playstyle: `${Math.round((goals/playstyleSum)*100)}:${Math.round((saves/playstyleSum)*100)}:${Math.round((assists/playstyleSum)*100)}`,
                         games: modeData.games.count,

@@ -7,6 +7,8 @@ export const ADD_MATCH_FAILURE = 'MATCHES__ADD_MATCH_FAILURE';
 export const LOADING_NEW_MATCH = 'MATCHES__LOADING_NEW_MATCH';
 export const GET_PLAYER = 'MATCHES__GET_PLAYER';
 export const LOADING_PLAYER_FAILURE = 'MATCHES__LOADING_PLAYER_FAILURE';
+// export const LOADING_PLAYER = 'MATCHES__LOADING_PLAYER';
+export const EDIT_USERNAME = 'MATCHES__EDIT_USERNAME';
 
 export const addMatch = match => {
     return (dispatch, getState) => {
@@ -46,3 +48,35 @@ export const addMatch = match => {
         });
     }
 };
+
+export const editUsername = (match, team, player, newUsername) => {
+    return (dispatch, getState) => {
+        const state = getState();
+        const matchIndex = state.matches.matches.reduce((acc, m, index) => m.id === match ? index : acc, 0);
+        const mode = state.matches.matches[matchIndex].mode;
+        const playerIndex = state.matches.matches[matchIndex].players[team].reduce((acc, p, index) => p.id === player ? index : acc, 0);
+        dispatch({ type: EDIT_USERNAME, match, team, player, newUsername });
+        fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${match}/${team}/${player}`, {
+            method: 'put',
+            headers: {
+                authorization: `Bearer ${state.session.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: newUsername })
+        })
+        .then(response => {
+            if(!response.ok) {
+                return Promise.reject(new Error(response.statusText));
+            }
+            return response;
+        })
+        .then(response => response.json())
+        .then(player => {
+            dispatch(getPlayer(GET_PLAYER, LOADING_PLAYER_FAILURE, matchIndex, team, playerIndex, mode, player.name, player.platform));  
+        })
+        .catch(err => {
+            console.log(err);
+            dispatch({ type: LOADING_PLAYER_FAILURE, matchIndex, teamIndex: team, playerIndex });
+        })
+    }
+}

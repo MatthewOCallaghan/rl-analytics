@@ -9,7 +9,7 @@ const display = (state = { matches: [], code: '', invalidCode: false, error: fal
         case INVALID_CODE:
             return { ...state, invalidCode: true };
         case GET_PLAYER:
-            return { ...state, matches: state.matches.map((match, index) => index === action.matchIndex ? { ...match, players: match.players.map((teamPlayers, index) => index === action.teamIndex ? teamPlayers.map((player, index) => index === action.playerIndex ? action.player : player) : teamPlayers) } : match) };
+            return { ...state, matches: state.matches.map((match, index) => index === action.matchIndex ? { ...match, players: match.players.map((teamPlayers, index) => index === action.teamIndex ? teamPlayers.map((player, index) => index === action.playerIndex ? { ...player, ...action.player, loading: false, error: false } : player) : teamPlayers) } : match) };
         case LOADING_PLAYER_FAILURE:
             return { ...state, matches: state.matches.map((match, index) => index === action.matchIndex ? { ...match, players: match.players.map((teamPlayers, index) => index === action.teamIndex ? teamPlayers.map((player, index) => index === action.playerIndex ? { ...player, loading: false, error: true } : player): teamPlayers)} : match) };
         default:

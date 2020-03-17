@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 import Button from '../../components/button/Button';
 import TextBox from '../../components/textbox/TextBox';
@@ -8,6 +9,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Box from '../../components/box/Box';
 import Particles from '../../components/particles/Particles';
+import SignInSignOut from '../../components/sign-in-sign-out/SignInSignOut';
 
 import { handleTextBoxChange, isSessionCodeFormatValid } from '../display/display';
 
@@ -17,10 +19,13 @@ import './landing.css';
 
 const Landing = () => {
     const [sessionId, setSessionId] = useState('');
+    const session = useSelector(store => store.session);
 
     return (
         <div id='landing-container'>
-            <span style={{position: 'absolute', top: 20, right: '5%'}}><Link to='/signin' style={{color: 'white', fontSize: '1.5rem'}}>Log in/Sign up</Link></span>
+            <span style={{position: 'absolute', top: 20, right: '5%'}}>
+                <SignInSignOut />
+            </span>
             <Particles />
             <Container>
                 <Row>
@@ -33,9 +38,9 @@ const Landing = () => {
                     </Col>
                     <Col md={12} lg={6} style={{padding: '20px 0'}}>
                         <Box colour='blue'>
-                            <h2>New session</h2>
+                            <h2>{session.token ? 'Continue' : 'New'} session</h2>
                             <p>Get in-game analytics on teammates and opponents</p>
-                            <Link to='/session'><Button colour='blue' style={{width: '100%'}}>New session</Button></Link>
+                            <Link to='/session'><Button colour='blue' style={{width: '100%'}}>{session.token ? 'Continue' : 'New'} session</Button></Link>
                         </Box>
                         <Box colour='orange' style={{marginTop: 20}}>
                             <h2>Display</h2>

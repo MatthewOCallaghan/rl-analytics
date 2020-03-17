@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useLocation, Redirect, useHistory } from 'react-router-dom';
+
+import { signIn, signUp } from '../../redux/actions/user';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
@@ -12,21 +16,33 @@ import Logo from '../../components/logo/Logo';
 import './SignInAndSignUp.css';
 
 const SignInAndSignUp = () => {
+    const status = useSelector(store => store.user);
+    const location = useLocation();
+    console.log(location);
+
+    const history = useHistory();
+    console.log(history);
     return (
-        <div id='sign-in-and-sign-up-container'>
-            <div style={{position: 'absolute', top: 20}}><Logo /></div>
-            <Particles />
-            <Container>
-                <Row>
-                    <Col xs={12} md={6}>
-                        <SignIn />
-                    </Col>
-                    <Col xs={12} md={6}>
-                        <SignUp />
-                    </Col>
-                </Row>
-            </Container>
-        </div>
+        <>
+            {
+                status.profile
+                    ?   <Redirect to={location.state ? location.state.from.pathname : '/'} />
+                    :   <div id='sign-in-and-sign-up-container'>
+                            <div style={{position: 'absolute', top: 20}}><Logo /></div>
+                            <Particles />
+                            <Container>
+                                <Row>
+                                    <Col xs={12} md={6}>
+                                        <SignIn />
+                                    </Col>
+                                    <Col xs={12} md={6}>
+                                        <SignUp />
+                                    </Col>
+                                </Row>
+                            </Container>
+                        </div>
+            }
+        </>
     );
 }
 
@@ -34,7 +50,11 @@ const SignIn = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    const dispatch = useDispatch();
+    const status = useSelector(store => store.user);
+
     const onSubmit = () => {
+        dispatch(signIn(email, password));
         setEmail('');
         setPassword('');
     }
@@ -42,10 +62,11 @@ const SignIn = () => {
     return (
         <Box colour='blue' style={{marginTop: 10, marginBottom: 10}}>
             <h2>Sign in</h2>
+            { status.signIn.error && <p style={{color: 'red'}}>{status.signIn.error.message}</p> }
             <div className='space-evenly'>
                 <TextBox type='email' placeholder='Email' value={email} handleOnChange={setEmail} />
                 <TextBox type='password' placeholder='Password' value={password} handleOnChange={setPassword} />
-                <Button colour='blue' handleOnClick={onSubmit} >Submit</Button>
+                <Button colour='blue' handleOnClick={onSubmit} loading={status.signIn.loading} disabled={!(email.length > 0 && password.length > 0) || status.signUp.loading || status.profile || status.signIn.loading} >Submit</Button>
             </div>
         </Box>
     );
@@ -56,7 +77,11 @@ const SignUp = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
+    const dispatch = useDispatch();
+    const status = useSelector(store => store.user);
+
     const onSubmit = () => {
+        dispatch(signUp(email, password));
         setEmail('');
         setPassword('');
         setConfirmPassword('');
@@ -65,11 +90,12 @@ const SignUp = () => {
     return (
         <Box colour='orange' style={{marginTop: 10, marginBottom: 10}}>
             <h2>Sign up</h2>
+            { status.signUp.error && <p style={{color: 'red'}}>{status.signUp.error.message}</p> }
             <div className='space-evenly' >
                 <TextBox type='email' placeholder='Email' value={email} handleOnChange={setEmail} />
                 <TextBox type='password' placeholder='Password' value={password} handleOnChange={setPassword} />
                 <TextBox type='password' placeholder='Confirm password' value={confirmPassword} handleOnChange={setConfirmPassword} />
-                <Button colour='orange' handleOnClick={onSubmit} >Submit</Button>
+                <Button colour='orange' handleOnClick={onSubmit} loading={status.signUp.loading} disabled={!(email.length > 0 && password.length > 0 && password === confirmPassword) || status.signUp.loading || status.signIn.loading || status.profile}>Submit</Button>
             </div>
         </Box>
     )

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import Logo from '../logo/Logo';
+import SignInSignOut from '../sign-in-sign-out/SignInSignOut';
 
 import './Layout.css';
 
@@ -20,6 +21,7 @@ const Header = () => {
     return (
         <header>
             <Logo />
+            <SignInSignOut />
         </header>
     );
 }

@@ -10,18 +10,6 @@ header {
     padding: 0.5rem 1rem;
 }
 
-header a {
-    color: white;
-}
-
-header a:hover {
-    color: white;
-}
-
-#logo {
-    font-size: 2rem;
-}
-
 #layout-container > main {
     padding: 1rem 0;
     flex-grow: 1;

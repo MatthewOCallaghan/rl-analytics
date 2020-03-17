@@ -7,6 +7,7 @@ import './App.css';
 import Landing from './pages/landing/landing';
 import Display from './pages/display/display';
 import Session from './pages/session/session';
+import SignInAndSignUp from './pages/sign-in-and-sign-up/SignInAndSignUp';
 
 import { store, persistor } from './redux/store';
 
@@ -17,6 +18,7 @@ function App() {
         <PersistGate persistor={persistor}>
           <Switch>
             <Route exact path='/' component={Landing} />
+            <Route path='/signin' component={SignInAndSignUp} />
             <Route path='/session' component={Session} />
             <Route path='/display/:code' component={Display} />
             <Route path='/display' component={Display} />

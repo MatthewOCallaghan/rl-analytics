@@ -20,6 +20,7 @@ const Landing = () => {
 
     return (
         <div id='landing-container'>
+            <span style={{position: 'absolute', top: 20, right: '5%'}}><Link to='/signin' style={{color: 'white', fontSize: '1.5rem'}}>Log in/Sign up</Link></span>
             <Particles />
             <Container>
                 <Row>

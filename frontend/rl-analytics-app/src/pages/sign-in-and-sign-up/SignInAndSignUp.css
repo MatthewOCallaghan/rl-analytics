@@ -1,0 +1,22 @@
+#sign-in-and-sign-up-container {
+    color: white;
+    min-height: 100vh;
+    padding: 0 5%;
+    display: flex;
+    /* flex-flow: row wrap; */
+    /* justify-content: space-around; */
+    align-items: center;
+}
+
+.space-evenly > * {
+    margin-top: 10px;
+    margin-bottom: 10px
+}
+
+.space-evenly:first-child {
+    margin-top: 0;
+}
+
+.space-evenly:last-child {
+    margin-bottom: 0;
+}

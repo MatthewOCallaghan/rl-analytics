@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Particles from 'react-particles-js';
 import { Link } from 'react-router-dom';
 
 import Button from '../../components/button/Button';
@@ -8,29 +7,20 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Box from '../../components/box/Box';
+import Particles from '../../components/particles/Particles';
 
 import { handleTextBoxChange, isSessionCodeFormatValid } from '../display/display';
 
 import './landing.css';
 
-const particlesOptions = {
-    particles: {
-      number: {
-        value: 70,
-        density: {
-          enable: true,
-          value_area: 800
-        }
-      }
-    }
-  };
+
 
 const Landing = () => {
     const [sessionId, setSessionId] = useState('');
 
     return (
         <div id='landing-container'>
-            <Particles className='particles' params={particlesOptions} style={{backgroundColor: 'black'}} />
+            <Particles />
             <Container>
                 <Row>
                     <Col style={{margin: 'auto 0'}} md={12} lg={6}>

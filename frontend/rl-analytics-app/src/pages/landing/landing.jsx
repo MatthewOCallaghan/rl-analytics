@@ -7,6 +7,7 @@ import TextBox from '../../components/textbox/TextBox';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Box from '../../components/box/Box';
 
 import { handleTextBoxChange, isSessionCodeFormatValid } from '../display/display';
 
@@ -60,14 +61,6 @@ const Landing = () => {
             </Container>
         </div>
     )
-}
-
-const Box = ({ colour, children, style }) => {
-    return (
-        <div className='landing-box' style={{borderColor: colour, ...style}}>
-            {children}
-        </div>
-    );
 }
 
 export default Landing;

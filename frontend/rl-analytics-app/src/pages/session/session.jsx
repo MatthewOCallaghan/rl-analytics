@@ -10,6 +10,7 @@ import Col from 'react-bootstrap/Col';
 import Button from '../../components/button/Button';
 import TextBox from '../../components/textbox/TextBox';
 import DropdownList from '../../components/dropdown-list/DropdownList';
+import Box from '../../components/box/Box';
 
 import './session.css';
 
@@ -262,7 +263,7 @@ const NewMatch = ({ addMatchWithUsernames, addMatchWithImage, navigateBack, load
             </Row>
             <Row>
                 <Col xs = {12} >
-                    <Box colour='blue'>
+                    <Box colour='blue' style={{padding: '2%'}}>
                         <h2>Take picture</h2>
                         <p>Scoreboard images must include both team names and all player usernames as a minimum. For best results, minimise the amount of text included in the image that is not in the scoreboard.</p>
                         <input style={{display: 'none'}} type='file' ref={setFileUpload} onChange={event => handleImage(event)} capture accept='image/*' />
@@ -270,7 +271,7 @@ const NewMatch = ({ addMatchWithUsernames, addMatchWithImage, navigateBack, load
                             Take picture
                         </Button>
                     </Box>
-                    <Box colour='orange' style={{marginTop: 20}}>
+                    <Box colour='orange' style={{marginTop: 20, padding: '2%'}}>
                         <h2>Enter usernames</h2>
                         <TeamBox team='BLUE' players={players[0]} handlePlayerInput={handleTypedPlayerInput(0)} disabled={loading}/>
                         <TeamBox team='ORANGE' players={players[1]} handlePlayerInput={handleTypedPlayerInput(1)} disabled={loading} />
@@ -294,14 +295,6 @@ const TeamBox = ({ team, handlePlayerInput, players, disabled }) => {
             <TextBox value={players[0]} style={{width: '70%'}} handleOnChange={handlePlayerInput(0)} disabled={disabled} />
             <TextBox value={players[1]} style={{width: '70%'}} handleOnChange={handlePlayerInput(1)} disabled={disabled} />
             <TextBox value={players[2]} style={{width: '70%'}} handleOnChange={handlePlayerInput(2)} disabled={disabled} />
-        </div>
-    );
-}
-
-const Box = ({ colour, children, style }) => {
-    return (
-        <div className='new-match-box' style={{borderColor: colour, ...style}}>
-            {children}
         </div>
     );
 }

@@ -8,6 +8,7 @@ import Landing from './pages/landing/landing';
 import Display from './pages/display/display';
 import Session from './pages/session/session';
 import SignInAndSignUp from './pages/sign-in-and-sign-up/SignInAndSignUp';
+import NotFound from './pages/404/404';
 
 import { store, persistor } from './redux/store';
 
@@ -22,6 +23,7 @@ function App() {
             <Route path='/session' component={Session} />
             <Route path='/display/:code' component={Display} />
             <Route path='/display' component={Display} />
+            <Route path='*' component={NotFound} />
           </Switch>
         </PersistGate>
       </BrowserRouter>

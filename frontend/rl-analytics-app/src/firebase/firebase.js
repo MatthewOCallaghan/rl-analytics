@@ -17,7 +17,7 @@ const config = process.env.NODE_ENV === 'production'
 
 firebase.initializeApp(config);
 
-export const auth = firebase.auth();
+const auth = firebase.auth();
 
 export const createUser = (email, password) => auth.createUserWithEmailAndPassword(email, password);
 
@@ -25,4 +25,4 @@ export const signIn = (email, password) => auth.signInWithEmailAndPassword(email
 
 export const signOut = () => auth.signOut();
 
-export default firebase;
+export const getIdToken = () => auth.currentUser.getIdToken();

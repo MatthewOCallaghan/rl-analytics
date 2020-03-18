@@ -57,52 +57,6 @@ const GAME_MODES = [
     },
 ];
 
-const testMatch = {
-    players: [
-        [
-            {
-                name: 'MattyOCallaghan',
-                mmr: 1214,
-                playstyle: '42:17:41',
-                games: 213,
-                mvpWinPercentage: 48.3,
-                streak: {type: 'L', length: 2},
-                divUp: 5,
-                divDown: 25,
-                rank: 'Champion I',
-                division: 'I',
-                loading: false,
-                error: false
-            },
-            {
-                name: 'jamesontour',
-                mmr: 1187,
-                playstyle: '43:27:30',
-                games: 248,
-                mvpWinPercentage: 52.8,
-                divDown: 14,
-                rank: 'Diamond III',
-                division: 'III',
-                loading: false,
-                error: false
-            }
-        ],
-        [
-            {
-                name: 'opring1871',
-                loading: true,
-                error: false
-            },
-            {
-                name: 'test',
-                loading: false,
-                error: true
-            }
-        ]
-    ],
-    season: 13
-}
-
 const Session = () => {
     const [view, setView] = useState('analytics'); //analytics, new
     const [awaitingSubmit, setAwaitingSubmit] = useState(false);

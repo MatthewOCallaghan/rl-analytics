@@ -35,7 +35,7 @@ const { getStats } = require('./controllers/scrape/stats');
 const { getSeasonRanks } = require('./controllers/scrape/ranks');
 const { getRatingDetail } = require('./controllers/scrape/mmr');
 const { getUpdates } = require('./controllers/scrape/updates');
-const { addSession, addMatch, getMatches, checkTokenExists, editUsername } = require('./controllers/sessions');
+const { addSession, addMatch, getMatches, checkTokenExists, editUsername, handleTokenIfExists } = require('./controllers/sessions');
 
 const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://localhost:3000'];
 
@@ -74,7 +74,7 @@ app.get('/profile/:name/mmr', async (req, res) => await handleScrapingRequest(re
 
 app.get('/profile/:name/updates', async (req, res) => await handleScrapingRequest(res, req.params.name.replace(' ', '%20'), req.query.platform, getUpdates));
 
-app.post('/sessions', (req, res) => addSession(req, res, database));
+app.post('/sessions', handleTokenIfExists, async (req, res) => await addSession(req, res, database));
 
 app.post('/sessions/:code', checkTokenExists, async (req, res) => await addMatch(req, res, database));
 

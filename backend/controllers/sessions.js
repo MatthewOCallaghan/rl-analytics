@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { extractUsernamesFromImage } = require('./image');
+const admin = require('firebase-admin');
 
 const JWT_KEY = process.env.JWT_KEY || require('../config.js').JWT_KEY;
 
@@ -57,6 +58,11 @@ const GAME_MODES = [
     },
 ];
 
+admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    databaseURL: "https://rl-analytics-auth.firebaseio.com"
+});
+
 const generateRandomCode = length => {
     var code = '';
     for(var i = 0; i < length; i++) {
@@ -65,35 +71,64 @@ const generateRandomCode = length => {
     return code;
 }
 
-const addSession = (req, res, database) => {
-    database.select('code').from('sessions')
-    .then(codes => {
+const addSession = async (req, res, database) => {
+
+    var userId = null;
+    if (req.token) {
+        try {
+            const user = await admin.auth().verifyIdToken(req.token);
+            userId = user.uid;
+        } catch (error) {
+            res.sendStatus(403);
+            console.log(error);
+            return;
+        }          
+    }
+
+    try {
+        // Generate code
+        var codes = await database.select('code').from('sessions');
         codes = codes.map(code => code.code);
         var newCode = '';
         do {
             newCode = generateRandomCode(CODE_LENGTH);
         } while (codes.includes(newCode));
-        
-        database('sessions').insert({
-            code: newCode
-        })
-        .returning('*')
-        .then(session => {
+
+        // Transaction
+        await database.transaction(async trx => {
+            var session = await trx.insert({
+                                            code: newCode
+                                        }, '*')
+                                        .into('sessions');
             session = session[0];
-            jwt.sign({ id: session.id, code: session.code, startTime: session.start_time }, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, (err, token) => {
-                if(err) {
-                    res.status(500).send('Error creating token');
-                }
-                res.json({
-                    token,
-                    code: session.code,
-                    startTime: session.start_time
+            if(userId) {
+                await trx('session_owners').insert({
+                    session_id: session.id,
+                    user_id: userId
+                });
+            }
+
+            // Token
+            const token = await new Promise((resolve, reject) => {
+                jwt.sign({ id: session.id, code: session.code, startTime: session.start_time }, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, (err, token) => {
+                    if(err) {
+                        reject(new Error('Error creating token'));
+                    }
+                    resolve({
+                        token,
+                        code: session.code,
+                        startTime: session.start_time
+                    });                    
                 });
             })
-        })
-        .catch(err => res.status(500).send(err));
-    })
-    .catch(err => res.status(500).send(err));
+            
+            res.json(token);
+        });
+
+    } catch(error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
 }
 
 const editUsername = (req, res, database) => {
@@ -264,10 +299,27 @@ const checkTokenExists = (req, res, next) => {
     }
 }
 
+const handleTokenIfExists = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if(authHeader) {
+        if(AUTH_FORMAT.test(authHeader)) {
+            const token = authHeader.split(' ')[1];
+            req.token = token;
+            next();
+        } else {
+            res.status(401).send('Incorrect auth header format');
+        }
+    } else {
+        next();
+    }
+}
+
 module.exports = {
     addSession,
     addMatch,
     getMatches,
     editUsername,
-    checkTokenExists
+    checkTokenExists,
+    handleTokenIfExists
 }

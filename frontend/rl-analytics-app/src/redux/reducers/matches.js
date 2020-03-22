@@ -18,11 +18,11 @@ const matches = (state = { matches: [], loading: false, error: false }, action) 
         case EDIT_USERNAME:
             return { ...state, matches: state.matches.map(match => match.id === action.match ? { ...match, players: match.players.map((teamPlayers, index) => index === action.team ? teamPlayers.map(player => player.id === action.player ? { id: player.id, name: action.newUsername, loading: true, error: false } : player): teamPlayers)} : match) };
         case FINISH_MATCH:
-            return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, finished: true, completing: false, players: match.players.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ ...player, result: action.result[teamIndex][playerIndex] }))) } : match) };
+            return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, finished: { completed: true }, players: match.players.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ ...player, result: action.result[teamIndex][playerIndex] }))) } : match) };
         case FINISH_MATCH_LOADING:
-            return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, completing: true } : match) };
+            return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, finished: { loading: true } } : match) };
         case FINISH_MATCH_FAILURE:
-            return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, errorFinishing: true, completing: false } : match) };
+            return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, finished: { error: action.error } } : match) };
         default:
             return state;
     }

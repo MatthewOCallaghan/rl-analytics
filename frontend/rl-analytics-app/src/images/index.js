@@ -19,6 +19,8 @@ import BronzeII from './ranks/Bronze II.png';
 import BronzeI from './ranks/Bronze I.png';
 import Unranked from './ranks/Unranked.png';
 
+import MVPImage from './mvp.png';
+
 export const Ranks = {
     'Grand Champion': GrandChampion,
     'Champion III': ChampionIII,
@@ -41,3 +43,5 @@ export const Ranks = {
     'Bronze I': BronzeI,
     'Unranked': Unranked
 }
+
+export const MVP = MVPImage;

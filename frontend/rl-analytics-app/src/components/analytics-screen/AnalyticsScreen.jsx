@@ -7,10 +7,13 @@ import Col from 'react-bootstrap/Col';
 import PlayerTable from '../player-table/PlayerTable';
 import Button from '../../components/button/Button';
 import FormChart from '../../components/form-chart/FormChart';
+import MatchResult from '../../components/match-result/MatchResult';
 
 import './AnalyticsScreen.css';
 
 const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction, host }) => {
+    const lastMatch = matches[matches.length - 1];
+    
     return (
         <Container className='session-container' fluid>
             <Row>
@@ -24,15 +27,17 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
                 {
                     matches.length === 0
                         ?   <Col xs={12}><p>No matches played yet...</p></Col>
-                        :   <>
-                                <Col xs={12} xl={8}>
-                                    <PlayerTable match={matches[matches.length - 1]} canEdit={host} />
-                                </Col>
-                                <Col xs={12} xl={4} style={{paddingBottom: '1rem'}}>
-                                    <h2>Form</h2>
-                                    <FormChart players={matches[matches.length - 1].players} />
-                                </Col>
-                            </>
+                        :   lastMatch.finished
+                                ?   <Col xs={12}><MatchResult match={lastMatch} /></Col>
+                                :   <>
+                                        <Col xs={12} xl={8}>
+                                            <PlayerTable match={lastMatch} canEdit={host} />
+                                        </Col>
+                                        <Col xs={12} xl={4} style={{paddingBottom: '1rem'}}>
+                                            <h2>Form</h2>
+                                            <FormChart players={lastMatch.players} />
+                                        </Col>
+                                    </>
                 }
             </Row>
             <Row>

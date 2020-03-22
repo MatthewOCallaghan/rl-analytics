@@ -112,7 +112,10 @@ export const getPlayerUpdate = async (player, mode) => {
             saves: calculateStatDifference('Saves'),
             shots: calculateStatDifference('Shots'),
             mvps: calculateStatDifference('MVPs'),
-            wins: calculateStatDifference('Wins')
+            wins: calculateStatDifference('Wins'),
+            rank: finalPlayer.rank,
+            division: finalPlayer.division,
+            mmrChange: finalPlayer.mmr - player.mmr
         };
 
     } catch (error) {

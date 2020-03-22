@@ -1,6 +1,6 @@
 import fetch from 'unfetch';
 
-import { getPlayer } from './players';
+import { getPlayerAndDispatch } from './players';
 
 export const GET_MATCHES = 'DISPLAY__GET_MATCHES';
 export const INVALID_CODE = 'DISPLAY__INVALID_CODE';
@@ -29,7 +29,7 @@ export const getMatches = code => {
             if (matches.length > 0 && matches.length > previousMatchesCount) {
                 const matchIndex = matches.length - 1;
                 matches[matchIndex].players.forEach((teamPlayers, teamIndex) => teamPlayers.forEach((player, playerIndex) => {
-                    dispatch(getPlayer(GET_PLAYER, LOADING_PLAYER_FAILURE, matchIndex, teamIndex, playerIndex, matches[matchIndex].mode, player.name, player.platform));
+                    dispatch(getPlayerAndDispatch(GET_PLAYER, LOADING_PLAYER_FAILURE, matchIndex, teamIndex, playerIndex, matches[matchIndex].mode, player.name, player.platform));
                 }));
             }
         })

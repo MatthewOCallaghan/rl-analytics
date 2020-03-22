@@ -20,21 +20,21 @@ const FormChart = ({ players }) => {
     
     const datasets = playerData.map(player => {
         var i = 0;
-        const data = labels.map(date => {
-            if(date.getTime() < player.data[i].date.getTime()) {
-                if(i === 0) {
-                    return player.data[i].value;
-                }
-                return interpolateValue(player.data[i-1], player.data[i], date);
-            } else if (date.getTime() === player.data[i].date.getTime()) {
-                if(i < player.data.length - 1) {
-                    i++;
-                }
-                return player.data[i-1].value;
-            } else {
-                return player.data[i].value;
-            }
-        });
+        const data = player.data.length === 0 
+                        ?   [] 
+                        :   labels.map(date => {
+                                if(date.getTime() < player.data[i].date.getTime()) {
+                                    if(i === 0) {
+                                        return player.data[i].value;
+                                    }
+                                    return interpolateValue(player.data[i-1], player.data[i], date);
+                                } else if (date.getTime() === player.data[i].date.getTime() && i < player.data.length - 1) {
+                                    i++;
+                                    return player.data[i-1].value;
+                                } else {
+                                    return player.data[i].value;
+                                }
+                            });
         return {
             data,
             label: player.name,

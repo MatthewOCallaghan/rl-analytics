@@ -35,23 +35,6 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
                             </>
                 }
             </Row>
-            {/* <Row>
-                <Col xs={12}>
-                    {
-                        matches.length === 0
-                            ?   <p>No matches played yet...</p>
-                            :   <PlayerTable match={matches[matches.length - 1]} />
-                    }
-                </Col>
-            </Row>
-            {
-                matches.length > 0 &&
-                <Row>
-                    <Col xs={12}>
-                        <FormChart players={matches[matches.length - 1].players} />
-                    </Col>
-                </Row>
-            } */}
             <Row>
                 <Col xs={12} className='session-button-row'>
                     {secondaryButtonText && <Link to='/' style={{minWidth: '25%', maxWidth: '40%'}}><Button colour='black' style={{minWidth: '100%'}} ghost large handleOnClick={secondaryButtonAction ? () => secondaryButtonAction() : undefined}>{secondaryButtonText}</Button></Link>}

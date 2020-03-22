@@ -46,3 +46,41 @@ export const createSession = () => {
 export const endSession = () => ({
     type: END_SESSION
 });
+
+export const GAME_MODES = [
+    {
+        title: 'Ranked Duel 1v1',
+        label: 'Solo Duel',
+        players: 1
+    },
+    {
+        title: 'Ranked Doubles 2v2',
+        label: 'Doubles',
+        players: 2
+    },
+    {
+        title: 'Ranked Standard 3v3',
+        label: 'Standard',
+        players: 3
+    },
+    {
+        title: 'Ranked Solo Standard 3v3',
+        label: 'Solo Standard',
+        players: 3
+    },
+    {
+        title: 'Hoops',
+        label: 'Hoops',
+        players: 2
+    },
+    {
+        title: 'Rumble',
+        label: 'Rumble',
+        players: 3
+    },
+    {
+        title: 'Dropshot',
+        label: 'Dropshot',
+        players: 3
+    },
+];

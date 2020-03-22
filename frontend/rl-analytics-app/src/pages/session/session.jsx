@@ -14,48 +14,10 @@ import Box from '../../components/box/Box';
 
 import './session.css';
 
-import { addMatch } from '../../redux/actions/matches';
-import { createSession, endSession } from '../../redux/actions/session';
+import { addMatch, finishMatch } from '../../redux/actions/matches';
+import { createSession, endSession, GAME_MODES } from '../../redux/actions/session';
 
 const BASE_64_PREFIX = /^data:image\/\w+;base64,/;
-
-const GAME_MODES = [
-    {
-        title: 'Ranked Duel 1v1',
-        label: 'Solo Duel',
-        players: 1
-    },
-    {
-        title: 'Ranked Doubles 2v2',
-        label: 'Doubles',
-        players: 2
-    },
-    {
-        title: 'Ranked Standard 3v3',
-        label: 'Standard',
-        players: 3
-    },
-    {
-        title: 'Ranked Solo Standard 3v3',
-        label: 'Solo Standard',
-        players: 3
-    },
-    {
-        title: 'Hoops',
-        label: 'Hoops',
-        players: 2
-    },
-    {
-        title: 'Rumble',
-        label: 'Rumble',
-        players: 3
-    },
-    {
-        title: 'Dropshot',
-        label: 'Dropshot',
-        players: 3
-    },
-];
 
 const Session = () => {
     const [view, setView] = useState('analytics'); //analytics, new
@@ -122,13 +84,16 @@ const Session = () => {
         setAwaitingSubmit(false);
     }
 
+    const mostRecentMatch = matches.matches[matches.matches.length - 1];
+    const matchesComplete = matches.matches.length === 0 || mostRecentMatch.finished;
+
     return (
         <Layout>
             { session.loading && <LoadingSessionScreen /> }
             { session.error && <ErrorSessionScreen back={() => dispatch(endSession())} /> }
             { session.token && 
                 (view === 'analytics'
-                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText='Next match' primaryButtonAction={() => setView('new')} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} host={true} />
+                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText={matchesComplete ? 'Next match' : 'Match finished'} primaryButtonAction={matchesComplete ? () => setView('new') : () => dispatch(finishMatch(mostRecentMatch))} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} host />
                     :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatchWithUsernames={submitNewMatch} addMatchWithImage={submitImage} />)
             }
         </Layout>

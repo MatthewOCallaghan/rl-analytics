@@ -7,7 +7,7 @@ const display = (state = { matches: [], code: '', invalidCode: false, error: fal
         case GET_MATCHES_FAILURE:
             return { ...state, error: true };
         case INVALID_CODE:
-            return { ...state, invalidCode: true };
+            return { ...state, invalidCode: { code: action.code } };
         case GET_PLAYER:
             return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, players: match.players.map((teamPlayers, index) => index === action.team ? teamPlayers.map(player => player.id === action.playerId && player.name === action.player.name ? { ...player, ...action.player, loading: false, error: false } : player) : teamPlayers) } : match) };
         case LOADING_PLAYER_FAILURE:

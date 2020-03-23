@@ -14,7 +14,7 @@ export const getMatches = code => {
         .then(response => {
             if(!response.ok) {
                 if(response.status === 400) {
-                    dispatch({ type: INVALID_CODE });
+                    dispatch({ type: INVALID_CODE, code });
                     return Promise.reject(new Error(400));
                 }
                 return Promise.reject(new Error(response.statusText));

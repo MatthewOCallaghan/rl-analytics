@@ -24,21 +24,22 @@ const Display = ({ match }) => {
     const display = useSelector(store => store.display);
     const code = match.params.code;
     const dispatch = useDispatch();
+    const invalidCode = display.invalidCode && display.invalidCode.code === code;
 
     useEffect(() => {
-        if(code && !display.invalidCode) {
+        if(code && !invalidCode) {
             dispatch(getMatches(code));
             const interval = setInterval(() => {
                 dispatch(getMatches(code));
             }, 15000);
             return () => clearInterval(interval);
         }
-    }, [dispatch, code, display.invalidCode]);
+    }, [dispatch, code, invalidCode]);
 
     return (
         <Layout>
             {
-                code === undefined || display.invalidCode
+                code === undefined || invalidCode
                     ?   <CodePrompt invalidCode={display.invalidCode} />
                     :   <AnalyticsScreen errorAlert={display.error ? 'We are having trouble connecting to the session, but we will continue to try...' : false} code={code} matches={display.matches} secondaryButtonText='Quit' />
             }

@@ -106,6 +106,7 @@ export const getPlayerUpdate = async (player, mode) => {
                                                 }, 0);
 
         return {
+            id: player.id,
             games: countGames(finalPlayer) - countGames(player),
             goals: calculateStatDifference('Goals'),
             assists: calculateStatDifference('Assists'),

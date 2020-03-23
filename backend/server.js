@@ -35,7 +35,7 @@ const { getStats } = require('./controllers/scrape/stats');
 const { getSeasonRanks } = require('./controllers/scrape/ranks');
 const { getRatingDetail } = require('./controllers/scrape/mmr');
 const { getUpdates } = require('./controllers/scrape/updates');
-const { addSession, addMatch, getMatches, checkTokenExists, editUsername, handleTokenIfExists } = require('./controllers/sessions');
+const { addSession, addMatch, getMatches, checkTokenExists, editUsername, finishMatch, submitResult, handleTokenIfExists, checkValidSessionCode, verifyToken } = require('./controllers/sessions');
 
 const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://localhost:3000'];
 
@@ -76,11 +76,15 @@ app.get('/profile/:name/updates', async (req, res) => await handleScrapingReques
 
 app.post('/sessions', handleTokenIfExists, async (req, res) => await addSession(req, res, database));
 
-app.post('/sessions/:code', checkTokenExists, async (req, res) => await addMatch(req, res, database));
+app.post('/sessions/:code', checkTokenExists, checkValidSessionCode, verifyToken, async (req, res) => await addMatch(req, res, database));
 
-app.get('/sessions/:code', (req, res) => getMatches(req, res, req.params.code, database));
+app.get('/sessions/:code', checkValidSessionCode, (req, res) => getMatches(req, res, req.params.code, database));
+
+app.put('/sessions/:code/:match/status', checkTokenExists, checkValidSessionCode, verifyToken, (req, res) => finishMatch(req, res, req.params.code, req.params.match, database));
+
+app.post('/sessions/:code/:match/result', checkTokenExists, checkValidSessionCode, verifyToken, (req, res) => submitResult(req, res, req.params.code, req.params.match, database));
 
 app.options('/sessions/:code/:match/:team/:player', cors(CORS_OPTIONS));
-app.put('/sessions/:code/:match/:team/:player', checkTokenExists, (req, res) => editUsername(req, res, database));
+app.put('/sessions/:code/:match/:team/:player', checkTokenExists, checkValidSessionCode, verifyToken, (req, res) => editUsername(req, res, database));
 
 module.exports = app;

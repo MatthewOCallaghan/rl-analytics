@@ -75,7 +75,7 @@ const processMatchResult = async match => {
 
         // Get updates (repeat if updates do not include the match)
         do {
-            updates = await Promise.all(match.players.flat().map(player => getPlayerUpdate(player, match.mode)));
+            updates = await Promise.all(match.players[0].concat(players[1]).map(player => getPlayerUpdate(player, match.mode)));
         } while (
             updates.reduce((acc, player) => acc + player.wins) === 0 || // Does not include match if nobody has won
             updates.reduce((acc, player) => acc + player.mvps) === 0 || // Does not include match if nobody has earned an MVP

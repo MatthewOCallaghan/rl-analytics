@@ -16,6 +16,10 @@ const AUTH_FORMAT = /^Bearer .*$/;
 
 const INTEGER_REGEX = /^\d+$/;
 
+const RANK_REGEX = /^((Bronze|Silver|Gold|Platinum|Diamond|Champion) I{1,3}|Grand champion)$/;
+
+const DIVISION_REGEX = /^I(I{1,2}|V)?$/;
+
 const isSessionCodeFormatValid = code => code.length === CODE_LENGTH && code.replace(new RegExp(`[^${CODE_CHARS}]`, 'g'), '').length === code.length;
 
 const PLATFORMS = ['ps', 'steam', 'xbox'];
@@ -267,7 +271,7 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
 
     if(!status || !MATCH_STATUSES.includes(status)) {
         res.status(400).send('Invalid status');
-    } else if(status === 'finished' && !(result && Array.isArray(result) && result.length === 2 && Array.isArray(result[0]) && Array.isArray(result[1]) && result[0].concat(result[1]).length > 0 && result[0].concat(result[1]).filter(update => update.id === undefined || update.wins === undefined).length === 0 && result[0].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]) && result[1].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]))) {
+    } else if(status === 'finished' && !(result && Array.isArray(result) && result.length === 2 && Array.isArray(result[0]) && Array.isArray(result[1]) && result[0].concat(result[1]).length > 0 && result[0].concat(result[1]).filter(update => [update.id, update.wins, update.rank, update.division, update.mmrChange].filter(value => value === undefined).length > 0 || !RANK_REGEX.test(update.rank) || !DIVISION_REGEX.test(update.division) || !Number.isInteger(update.mmrChange)).length === 0 && result[0].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]) && result[1].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]))) {
         res.status(400).send('Incorrect result format');
     } else {
         database.select('code')
@@ -304,7 +308,10 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
                                                                goals: playerResult.goals >= 0 ? playerResult.goals : undefined,
                                                                assists: playerResult.assists >= 0 ? playerResult.assists : undefined,
                                                                saves: playerResult.saves >= 0 ? playerResult.saves : undefined,
-                                                               shots: playerResult.shots >= 0 ? playerResult.shots : undefined
+                                                               shots: playerResult.shots >= 0 ? playerResult.shots : undefined,
+                                                               new_rank: playerResult.rank,
+                                                               new_division: playerResult.division,
+                                                               mmr_change: playerResult.mmrChange
                                                             })
                                     );
 
@@ -328,7 +335,7 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
 }
 
 const getMatches = (req, res, code, database) => {
-    database.select('sessions.code', 'matches.id', 'players.name', 'players.platform', 'players.team', 'matches.start_time', 'matches.mode')
+    database.select('sessions.code', 'matches.id AS matchId', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp')
     .from('sessions', 'matches', 'players')
     .leftOuterJoin('matches', 'sessions.id', 'matches.session_id')
     .leftOuterJoin('players', 'matches.id', 'players.match_id')
@@ -342,19 +349,59 @@ const getMatches = (req, res, code, database) => {
             const matches = {};
             data.forEach(player => {
                 const newPlayer = {
-                    name: player.name
+                    name: player.name,
+                    id: player.playerId
                 };
                 if(player.platform) {
                     newPlayer.platform = player.platform;
                 }
-                if(!matches[player.id]) {
-                    matches[player.id] = {
+                if(player.status === 'finished') {
+                    newPlayer.result = {};
+
+                    const addStat = (name, value) => {
+                        if (value !== null) {
+                            newPlayer.result[name] = value;
+                        }
+                    }
+
+                    addStat('goals', player.goals);
+                    addStat('assists', player.assists);
+                    addStat('saves', player.saves);
+                    addStat('shots', player.shots);
+
+                    newPlayer.result.wins = player.team === player.winner ? 1 : 0;
+                    
+                    if (player.mvp !== null) {
+                        newPlayer.result.mvps = player.mvp === player.playerId ? 1 : 0;
+                    }
+
+                    newPlayer.result.rank = player.new_rank;
+                    newPlayer.result.division = player.new_division;
+                    newPlayer.result.mmrChange = player.mmr_change;
+                }
+                if(!matches[player.matchId]) {
+                    matches[player.matchId] = {
                         players: [[], []],
                         startTime: player.start_time,
                         mode: player.mode
                     };
+
+                    if (player.status !== 'playing') {
+                        switch(player.status) {
+                            case 'completing':
+                                matches[player.matchId].finished = { loading: true };
+                                break;
+                            case 'finished':
+                                matches[player.matchId].finished = { completed: true };
+                                break;
+                            case 'error':
+                                matches[player.matchId].finished = { error: true };
+                            default:
+                                break;
+                        }
+                    }
                 }
-                matches[player.id].players[player.team].push(newPlayer);
+                matches[player.matchId].players[player.team].push(newPlayer);
             });
             res.json(Object.values(matches).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)));
         }

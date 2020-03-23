@@ -65,7 +65,7 @@ const Team = ({ name, players, colour, season, setEditing, canEdit }) => {
         player.mmr,
         player.playstyle,
         player.games,
-        `${player.mvpWinPercentage}${!player.loading && !player.error && '%'}`,
+        player.mvpWinPercentage && `${player.mvpWinPercentage}${!player.loading && !player.error && '%'}`,
         player.streak
             ? <span style={{color: player.streak.type === 'W' ? '#00ff00' : 'red'}}>{player.streak.length + player.streak.type}</span>
             : ''

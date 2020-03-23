@@ -86,7 +86,7 @@ export const getPlayerUpdate = async (player, mode) => {
                     resolve(finalPlayer);
                 }
                 console.log(`${player.name} not updated yet`);
-            }, 60000);
+            }, 90000);
         });
 
         var finalPlayer = await fetchPlayer();

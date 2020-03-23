@@ -54,13 +54,69 @@ export const addMatch = match => {
 
 export const finishMatch = match => {
     return async (dispatch, getState) => {
+        const state = getState();
         dispatch({ type: FINISH_MATCH_LOADING, matchId: match.id });
+        try {
+            await fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${match.id}/status`, {
+                method: 'put',
+                headers: {
+                    authorization: `Bearer ${state.session.token}`
+                },
+            });
+        } catch (error) {
+            console.log(error);
+        }
         try {
             const result = await processMatchResult(match);
             if(result) {
-                dispatch({ type: FINISH_MATCH, matchId: match.id, result });
+                fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${match.id}/result`, {
+                    method: 'post',
+                    headers: {
+                        authorization: `Bearer ${state.session.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'finished',
+                        result
+                    })
+                })
+                .then(response => {
+                    if(!response.ok) {
+                        return Promise.reject(new Error(response.statusText));
+                    }
+                    return response;
+                })
+                .then(response => {
+                    dispatch({ type: FINISH_MATCH, matchId: match.id, result });
+                })
+                .catch(err => {
+                    console.log(err);
+                    dispatch({ type: FINISH_MATCH_FAILURE, matchId: match.id, error: 'Error saving match result'});
+                }); 
             } else {
-                dispatch({ type: FINISH_MATCH_FAILURE, matchId: match.id, error: 'Unable to determine match result'});
+                fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${match.id}/result`, {
+                    method: 'post',
+                    headers: {
+                        authorization: `Bearer ${state.session.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: 'error',
+                    })
+                })
+                .then(response => {
+                    if(!response.ok) {
+                        return Promise.reject(new Error(response.statusText));
+                    }
+                    return response;
+                })
+                .then(response => {
+                    dispatch({ type: FINISH_MATCH_FAILURE, matchId: match.id, error: 'Unable to determine match result'});
+                })
+                .catch(err => {
+                    console.log(err);
+                    dispatch({ type: FINISH_MATCH_FAILURE, matchId: match.id, error: 'Unable to determine match result and error saving match result'});
+                });
             }
         } catch (error) {
             dispatch({ type: FINISH_MATCH_FAILURE, matchId: match.id, error: 'Error calculating match result' });
@@ -75,7 +131,7 @@ const processMatchResult = async match => {
 
         // Get updates (repeat if updates do not include the match)
         do {
-            updates = await Promise.all(match.players[0].concat(players[1]).map(player => getPlayerUpdate(player, match.mode)));
+            updates = await Promise.all(match.players[0].concat(match.players[1]).map(player => getPlayerUpdate(player, match.mode)));
         } while (
             updates.reduce((acc, player) => acc + player.wins) === 0 || // Does not include match if nobody has won
             updates.reduce((acc, player) => acc + player.mvps) === 0 || // Does not include match if nobody has earned an MVP

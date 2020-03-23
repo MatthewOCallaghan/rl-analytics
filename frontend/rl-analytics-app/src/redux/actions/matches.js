@@ -33,12 +33,11 @@ export const addMatch = match => {
         })
         .then(response => response.json())
         .then(match => {
-            const matchIndex = getState().matches.matches.length;
             match.players = match.players.map(teamPlayers => teamPlayers.map(player => ({...player, loading: true, error: false})));
             dispatch({ type: ADD_MATCH, match });
             try {
-                match.players.forEach((teamPlayers, teamIndex) => teamPlayers.forEach((player, playerIndex) => {
-                    dispatch(getPlayerAndDispatch(GET_PLAYER, LOADING_PLAYER_FAILURE, matchIndex, teamIndex, playerIndex, match.mode, player.name, player.platform));
+                match.players.forEach((teamPlayers, teamIndex) => teamPlayers.forEach(player => {
+                    dispatch(getPlayerAndDispatch(GET_PLAYER, LOADING_PLAYER_FAILURE, match.id, teamIndex, player.id, match.mode, player.name, player.platform));
                 }));
             } catch(err) {
                 console.log(err);
@@ -252,14 +251,13 @@ const processMatchResult = async match => {
     }
 }
 
-export const editUsername = (match, team, player, newUsername) => {
+export const editUsername = (matchId, team, playerId, newUsername) => {
     return (dispatch, getState) => {
         const state = getState();
-        const matchIndex = state.matches.matches.reduce((acc, m, index) => m.id === match ? index : acc, 0);
+        const matchIndex = state.matches.matches.reduce((acc, m, index) => m.id === matchId ? index : acc, 0);
         const mode = state.matches.matches[matchIndex].mode;
-        const playerIndex = state.matches.matches[matchIndex].players[team].reduce((acc, p, index) => p.id === player ? index : acc, 0);
-        dispatch({ type: EDIT_USERNAME, match, team, player, newUsername });
-        fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${match}/${team}/${player}`, {
+        dispatch({ type: EDIT_USERNAME, matchId, team, playerId, newUsername });
+        fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${matchId}/${team}/${playerId}`, {
             method: 'put',
             headers: {
                 authorization: `Bearer ${state.session.token}`,
@@ -275,11 +273,11 @@ export const editUsername = (match, team, player, newUsername) => {
         })
         .then(response => response.json())
         .then(player => {
-            dispatch(getPlayerAndDispatch(GET_PLAYER, LOADING_PLAYER_FAILURE, matchIndex, team, playerIndex, mode, player.name, player.platform));  
+            dispatch(getPlayerAndDispatch(GET_PLAYER, LOADING_PLAYER_FAILURE, matchId, team, playerId, mode, player.name, player.platform));  
         })
         .catch(err => {
             console.log(err);
-            dispatch({ type: LOADING_PLAYER_FAILURE, matchIndex, teamIndex: team, playerIndex });
+            dispatch({ type: LOADING_PLAYER_FAILURE, matchId, team, playerId });
         })
     }
 }

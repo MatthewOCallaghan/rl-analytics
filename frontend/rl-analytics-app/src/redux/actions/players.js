@@ -1,12 +1,12 @@
 import { GAME_MODES } from './session';
 
-export const getPlayerAndDispatch = (successType, errorType, matchIndex, teamIndex, playerIndex, mode, player, platform) => {
+export const getPlayerAndDispatch = (successType, errorType, matchId, team, playerId, mode, player, platform) => {
     return dispatch => {
         getPlayer(mode, player, platform)
-            .then(player => dispatch({ type: successType,  matchIndex, teamIndex, playerIndex, player }))
+            .then(player => dispatch({ type: successType,  matchId, team, playerId, player }))
             .catch(error => {
                 console.log(error);
-                dispatch({ type: errorType, matchIndex, teamIndex, playerIndex});
+                dispatch({ type: errorType, matchId, team, playerId, playerName: player });
             });
     }
 };

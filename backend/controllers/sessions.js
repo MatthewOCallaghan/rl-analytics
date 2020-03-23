@@ -383,7 +383,8 @@ const getMatches = (req, res, code, database) => {
                     matches[player.matchId] = {
                         players: [[], []],
                         startTime: player.start_time,
-                        mode: player.mode
+                        mode: player.mode,
+                        id: player.matchId
                     };
 
                     if (player.status !== 'playing') {

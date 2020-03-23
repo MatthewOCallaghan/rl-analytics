@@ -23,15 +23,30 @@ export const getMatches = code => {
         })
         .then(response => response.json())
         .then(matches => {
-            const previousMatchesCount = getState().display.matches.length;
-            matches = matches.map(match => ({...match, players: match.players.map(teamPlayers => teamPlayers.map(player => ({...player, loading: true, error: false}))) }));
-            dispatch({ type: GET_MATCHES, matches });
-            if (matches.length > 0 && matches.length > previousMatchesCount) {
-                const matchIndex = matches.length - 1;
-                matches[matchIndex].players.forEach((teamPlayers, teamIndex) => teamPlayers.forEach((player, playerIndex) => {
-                    dispatch(getPlayerAndDispatch(GET_PLAYER, LOADING_PLAYER_FAILURE, matchIndex, teamIndex, playerIndex, matches[matchIndex].mode, player.name, player.platform));
+            const previousMatches = getState().display.matches;
+
+            matches = matches.map(match => {
+
+                const previousMatch = previousMatches.filter(previousMatch => previousMatch.id === match.id)[0];
+                const previousPlayers = previousMatch && previousMatch.players;
+
+                match.players = match.players.map((teamPlayers, team) => teamPlayers.map(player => {
+                    const previousPlayer = previousPlayers && previousPlayers[team] && previousPlayers[team].filter(previousPlayer => previousPlayer.id === player.id)[0];
+
+                    if (previousPlayer && player.name === previousPlayer.name) {
+                        return { ...previousPlayer, ...player };
+                    }
+
+                    if (!match.finished) {
+                        dispatch(getPlayerAndDispatch(GET_PLAYER, LOADING_PLAYER_FAILURE, match.id, team, player.id, match.mode, player.name, player.platform));
+                    }
+                    return { ...player, loading: true, error: false };
                 }));
-            }
+
+                return match;
+            });
+
+            dispatch({ type: GET_MATCHES, matches });
         })
         .catch(err => {
             if(err.message !== 400) {

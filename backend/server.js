@@ -35,7 +35,7 @@ const { getStats } = require('./controllers/scrape/stats');
 const { getSeasonRanks } = require('./controllers/scrape/ranks');
 const { getRatingDetail } = require('./controllers/scrape/mmr');
 const { getUpdates } = require('./controllers/scrape/updates');
-const { addSession, addMatch, getMatches, checkTokenExists, editUsername, finishMatch, submitResult, addSessionOwner, handleTokenIfExists, checkValidSessionCode, verifyToken } = require('./controllers/sessions');
+const { addSession, addMatch, getMatches, checkTokenExists, editUsername, finishMatch, submitResult, addSessionOwner, getMatchHistory, handleTokenIfExists, checkValidSessionCode, verifyToken, verifyFirebaseId } = require('./controllers/sessions');
 
 const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://localhost:3000'];
 
@@ -79,6 +79,8 @@ app.post('/sessions', handleTokenIfExists, async (req, res) => await addSession(
 app.post('/sessions/:code', checkTokenExists, checkValidSessionCode, verifyToken, async (req, res) => await addMatch(req, res, database));
 
 app.get('/sessions/:code', checkValidSessionCode, (req, res) => getMatches(req, res, req.params.code, database));
+
+app.get('/matches', checkTokenExists, verifyFirebaseId, (req, res) => getMatchHistory(req, res, database));
 
 app.post('/sessions/:code/owners', checkTokenExists, checkValidSessionCode, verifyToken, (req, res) => addSessionOwner(req, res, req.params.code, database));
 

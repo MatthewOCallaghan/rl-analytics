@@ -346,71 +346,75 @@ const getMatches = (req, res, code, database) => {
         } else if (data.length === 1) { // If one record returned, code exists but no matches played yet
             res.json([]);
         } else { // If more than one record exists, code exists and matches played
-            const matches = {};
-            data.forEach(player => {
-                const newPlayer = {
-                    name: player.name,
-                    id: player.playerId
-                };
-                if(player.platform) {
-                    newPlayer.platform = player.platform;
-                }
-                if(player.status === 'finished') {
-                    newPlayer.result = {};
-
-                    const addStat = (name, value) => {
-                        if (value !== null) {
-                            newPlayer.result[name] = value;
-                        }
-                    }
-
-                    addStat('goals', player.goals);
-                    addStat('assists', player.assists);
-                    addStat('saves', player.saves);
-                    addStat('shots', player.shots);
-
-                    newPlayer.result.wins = player.team === player.winner ? 1 : 0;
-                    
-                    if (player.mvp !== null) {
-                        newPlayer.result.mvps = player.mvp === player.playerId ? 1 : 0;
-                    }
-
-                    newPlayer.result.rank = player.new_rank;
-                    newPlayer.result.division = player.new_division;
-                    newPlayer.result.mmrChange = player.mmr_change;
-                }
-                if(!matches[player.matchId]) {
-                    matches[player.matchId] = {
-                        players: [[], []],
-                        startTime: player.start_time,
-                        mode: player.mode,
-                        id: player.matchId
-                    };
-
-                    if (player.status !== 'playing') {
-                        switch(player.status) {
-                            case 'completing':
-                                matches[player.matchId].finished = { loading: true };
-                                break;
-                            case 'finished':
-                                matches[player.matchId].finished = { completed: true };
-                                break;
-                            case 'error':
-                                matches[player.matchId].finished = { error: true };
-                            default:
-                                break;
-                        }
-                    }
-                }
-                matches[player.matchId].players[player.team].push(newPlayer);
-            });
-            res.json(Object.values(matches).sort((a, b) => new Date(a.startTime) - new Date(b.startTime)));
+            res.json(processMatches(data));
         }
     })
     .catch(err => {
         console.log(err);
         res.sendStatus(500);
     });
+}
+
+const processMatches = data => {
+    const matches = {};
+    data.forEach(player => {
+        const newPlayer = {
+            name: player.name,
+            id: player.playerId
+        };
+        if(player.platform) {
+            newPlayer.platform = player.platform;
+        }
+        if(player.status === 'finished') {
+            newPlayer.result = {};
+
+            const addStat = (name, value) => {
+                if (value !== null) {
+                    newPlayer.result[name] = value;
+                }
+            }
+
+            addStat('goals', player.goals);
+            addStat('assists', player.assists);
+            addStat('saves', player.saves);
+            addStat('shots', player.shots);
+
+            newPlayer.result.wins = player.team === player.winner ? 1 : 0;
+            
+            if (player.mvp !== null) {
+                newPlayer.result.mvps = player.mvp === player.playerId ? 1 : 0;
+            }
+
+            newPlayer.result.rank = player.new_rank;
+            newPlayer.result.division = player.new_division;
+            newPlayer.result.mmrChange = player.mmr_change;
+        }
+        if(!matches[player.matchId]) {
+            matches[player.matchId] = {
+                players: [[], []],
+                startTime: player.start_time,
+                mode: player.mode,
+                id: player.matchId
+            };
+
+            if (player.status !== 'playing') {
+                switch(player.status) {
+                    case 'completing':
+                        matches[player.matchId].finished = { loading: true };
+                        break;
+                    case 'finished':
+                        matches[player.matchId].finished = { completed: true };
+                        break;
+                    case 'error':
+                        matches[player.matchId].finished = { error: true };
+                    default:
+                        break;
+                }
+            }
+        }
+        matches[player.matchId].players[player.team].push(newPlayer);
+    });
+    return Object.values(matches).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 }
 
 const addSessionOwner = (req, res, sessionCode, database) => {
@@ -447,6 +451,24 @@ const addSessionOwner = (req, res, sessionCode, database) => {
                 res.sendStatus(403);
             });
     } 
+}
+
+const getMatchHistory = (req, res, database) => {
+    const userId = req.id;
+
+    database.select('matches.id AS matchId', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change')
+            .from('session_owners')
+            .innerJoin('sessions', 'session_owners.session_id', 'sessions.id')
+            .innerJoin('matches', 'sessions.id', 'matches.session_id')
+            .innerJoin('players', 'matches.id', 'players.match_id')
+            .where('session_owners.user_id', '=', userId)
+            .then(data => {
+                res.json(processMatches(data));
+            })
+            .catch(err => {
+                console.log(err);
+                res.sendStatus(500);
+            });
 }
 
 const checkValidSessionCode = (req, res, next) => {
@@ -502,6 +524,17 @@ const verifyToken = (req, res, next) => {
     });
 }
 
+const verifyFirebaseId = (req, res, next) => {
+    admin.auth().verifyIdToken(req.token)
+        .then(user => {
+            req.id = user.uid;
+            next();
+        })
+        .catch(error => {
+            res.sendStatus(403);
+        });
+}
+
 module.exports = {
     addSession,
     addMatch,
@@ -510,8 +543,10 @@ module.exports = {
     finishMatch,
     submitResult,
     addSessionOwner,
+    getMatchHistory,
     checkTokenExists,
     handleTokenIfExists,
     checkValidSessionCode,
-    verifyToken
+    verifyToken,
+    verifyFirebaseId
 }

@@ -166,8 +166,8 @@ const processMatchResult = async match => {
             }
 
             // If only one player has earned an MVP
-            const firstTeamMVPs = updates[0].reduce((acc, player) => acc + player.mvps);
-            const secondTeamMVPs = updates[1].reduce((acc, player) => acc + player.mvps);
+            const firstTeamMVPs = updates[0].reduce((acc, player) => acc + player.mvps, 0);
+            const secondTeamMVPs = updates[1].reduce((acc, player) => acc + player.mvps, 0);
             if (firstTeamMVPs + secondTeamMVPs === 1) {
                 results[0] = results[0].map(player => ({ ...player, wins: firstTeamMVPs }));
                 results[1] = results[1].map(player => ({ ...player, wins: secondTeamMVPs }));
@@ -186,9 +186,11 @@ const processMatchResult = async match => {
         const winner = 1 - results[0][0].wins;
 
         // We know stats of those who have played only once, or stats where total is zero
+        const count = 0;
         for (let t = 0; t < updates.length; t++) {
             for (let i = 0; i < updates[t].length; i++) {
                 if (updates[t][i].games === 1) {
+                    count++;
                     results[t][i] = {
                         ...updates[t][i]
                     };
@@ -201,6 +203,9 @@ const processMatchResult = async match => {
                 }              
             }
         }
+        if (count === updates[0].length + updates[1].length) {
+            return results; // All players have only played once so all results collected
+        }
 
         // MVP
         // Set losing team MVPs to 0
@@ -208,7 +213,7 @@ const processMatchResult = async match => {
         // If already an MVP in results, set other players to 0; Else if only one player with MVPs, they were MVP
         if (results[winner].filter(player => player.mvps).length > 0) {
             results[winner] = results[winner].map(player => ({ ...player, mvps: player.mvps || 0 }));
-        } else if (updates[winner].reduce((acc, player) => player.mvps ? acc + 1 : acc) < 2) {
+        } else if (updates[winner].reduce((acc, player) => player.mvps ? acc + 1 : acc, 0) < 2) {
             for (let i = 0; i < updates[winner].length; i++) {
                 results[winner][i].mvps = updates[winner][i].mvps === 0 ? 0 : 1;           
             }
@@ -216,15 +221,15 @@ const processMatchResult = async match => {
 
         // Goals
         // If we know all winning team's goals...
-        if (results[winner].reduce((acc, player) => player.goals ? 0 : acc + 1) === 0) {
+        if (results[winner].reduce((acc, player) => player.goals ? 0 : acc + 1, 0) === 0) {
 
-            const winningGoals = results[winner].reduce((acc, player) => acc + player.goals);
+            const winningGoals = results[winner].reduce((acc, player) => acc + player.goals, 0);
 
             // ...and they sum to 1, no losing player scored
             if (winningGoals === 1) {
                 results[1-winner] = results[1-winner].map(player => ({ ...player, goals: 0 }));
             } else {
-                const losingGoalsSoFar = results[1-winner].reduce((acc, player) => player.goals ? acc + player.goals : acc);
+                const losingGoalsSoFar = results[1-winner].reduce((acc, player) => player.goals ? acc + player.goals : acc, 0);
 
                 // If losing goals so far is one less than winning goals, no other losing player scored
                 if (losingGoalsSoFar === winningGoals - 1) {
@@ -237,7 +242,7 @@ const processMatchResult = async match => {
         // For every goalless pair in a team, the third player got no assists
         for (let t = 0; t < updates.length; t++) {
             for (let i = 0; i < updates[t].length; i++) {
-                if (results[t].reduce((acc, player, index) => index !== t && player.goals !== undefined ? acc + player.goals : acc) === 0) {
+                if (results[t].reduce((acc, player, index) => index !== i && player.goals !== undefined ? acc + player.goals : acc, 0) === 0) {
                     results[t][i].assists = 0;
                 }                
             }            

@@ -73,6 +73,7 @@ const SignIn = () => {
 }
 
 const SignUp = () => {
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -81,7 +82,8 @@ const SignUp = () => {
     const status = useSelector(store => store.user);
 
     const onSubmit = () => {
-        dispatch(signUp(email, password));
+        dispatch(signUp(email, password, username));
+        setUsername('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
@@ -92,10 +94,11 @@ const SignUp = () => {
             <h2>Sign up</h2>
             { status.signUp.error && <p style={{color: 'red'}}>{status.signUp.error.message}</p> }
             <div className='space-evenly' >
+                <div><TextBox placeholder='Username' value={username} handleOnChange={setUsername} helpText={'Steam ID, PSN name or XBOX gamertag'} /></div>
                 <TextBox type='email' placeholder='Email' value={email} handleOnChange={setEmail} />
                 <TextBox type='password' placeholder='Password' value={password} handleOnChange={setPassword} />
                 <TextBox type='password' placeholder='Confirm password' value={confirmPassword} handleOnChange={setConfirmPassword} />
-                <Button colour='orange' handleOnClick={onSubmit} loading={status.signUp.loading} disabled={!(email.length > 0 && password.length > 0 && password === confirmPassword) || status.signUp.loading || status.signIn.loading || status.profile}>Submit</Button>
+                <Button colour='orange' handleOnClick={onSubmit} loading={status.signUp.loading} disabled={!(email.length > 0 && password.length > 0 && password === confirmPassword && username.length > 0) || status.signUp.loading || status.signIn.loading || status.profile}>Submit</Button>
             </div>
         </Box>
     )

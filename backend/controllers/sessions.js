@@ -413,6 +413,42 @@ const getMatches = (req, res, code, database) => {
     });
 }
 
+const addSessionOwner = (req, res, sessionCode, database) => {
+    const sessionId = req.tokenData.id;
+
+    if(!req.body.ownerToken) {
+        res.status(400).send('No owner token');
+    } else {
+        admin.auth().verifyIdToken(req.token)
+            .then(owner => {
+                const ownerId = owner.uid;
+
+                database.select('code').from('sessions').where('id', '=', sessionId).first()
+                .then(code => {
+                    code = code.code;
+                    if (code === sessionCode) {
+                        database('sessions').insert({ session_id: sessionId, user_id: ownerId }, '*')
+                            .then(ownership => res.json(ownership))
+                            .catch(err => {
+                                console.log(err);
+                                res.sendStatus(500);
+                            });
+                    } else {
+                        res.sendStatus(403);
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    res.sendStatus(500);
+                });
+            })
+            .catch(error => {
+                console.log(error);
+                res.sendStatus(403);
+            });
+    } 
+}
+
 const checkValidSessionCode = (req, res, next) => {
     const code = req.params.code;
 
@@ -473,6 +509,7 @@ module.exports = {
     editUsername,
     finishMatch,
     submitResult,
+    addSessionOwner,
     checkTokenExists,
     handleTokenIfExists,
     checkValidSessionCode,

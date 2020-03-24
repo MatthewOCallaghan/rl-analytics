@@ -1,4 +1,5 @@
 import { CREATE_SESSION, LOADING_SESSION, CREATE_SESSION_FAILURE, END_SESSION } from '../actions/session';
+import { SIGN_OUT } from '../actions/user';
 
 const session = (state = {}, action) => {
     switch(action.type) {
@@ -9,6 +10,7 @@ const session = (state = {}, action) => {
         case CREATE_SESSION_FAILURE:
             return { error: true };
         case END_SESSION:
+        case SIGN_OUT:
             return {};
         default:
             return state;

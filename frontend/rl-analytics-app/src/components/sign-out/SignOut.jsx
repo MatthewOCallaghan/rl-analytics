@@ -10,7 +10,7 @@ const SignOut = () => {
     const dispatch = useDispatch();
 
     return (
-        <span id='sign-out' onClick={() => dispatch(signOut())} >Sign out: {user.email}</span>
+        <span id='sign-out' onClick={() => dispatch(signOut())} >Sign out: {user.username}</span>
     );
 }
 

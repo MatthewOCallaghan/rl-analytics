@@ -1,9 +1,11 @@
 import { GET_PLAYER, LOADING_PLAYER_FAILURE, ADD_MATCH, ADD_MATCH_FAILURE, LOADING_NEW_MATCH, EDIT_USERNAME, FINISH_MATCH, FINISH_MATCH_FAILURE, FINISH_MATCH_LOADING } from '../actions/matches';
 import { END_SESSION } from '../actions/session';
+import { SIGN_OUT } from '../actions/user';
 
 const matches = (state = { matches: [], loading: false, error: false }, action) => {
     switch(action.type) {
         case END_SESSION:
+        case SIGN_OUT:
             return { matches: [], loading: false, error: false };
         case ADD_MATCH:
             return { loading: false, error: false, matches: state.matches.concat([action.match]) };

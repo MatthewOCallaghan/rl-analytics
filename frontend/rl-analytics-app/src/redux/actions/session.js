@@ -43,6 +43,20 @@ export const createSession = () => {
     }
 }
 
+export const addSessionOwner = (sessionCode, sessionToken, ownerToken) => {
+    fetch(`${process.env.REACT_APP_API_URL}/sessions/${sessionCode}/owners`, {
+        method: 'post',
+        headers: {
+            authorization: `Bearer ${sessionToken}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            ownerToken
+        })
+    })
+    .catch(console.log);
+}
+
 export const endSession = () => ({
     type: END_SESSION
 });

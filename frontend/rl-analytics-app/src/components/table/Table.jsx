@@ -13,7 +13,15 @@ const Table = ({ title, headings, rows, caption, responsive, colour }) => {
                     <thead>
                         <tr>
                             {
-                                headings.map((heading, index) => <th key={'table-heading:' + heading + index}>{heading}</th>)
+                                headings.map((heading, index) => 
+                                    <th key={'table-heading:' + heading + index}>
+                                        {
+                                            heading && heading.includes(`\n`)
+                                                ?   heading.split(`\n`).reduce((acc, h, index, arr) => acc.concat(index === arr.length - 1 ? h : [h, <br/>]), [])
+                                                :   heading
+                                        }
+                                    </th>
+                                )
                             }
                         </tr>
                     </thead>

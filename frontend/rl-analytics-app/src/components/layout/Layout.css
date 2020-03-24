@@ -12,6 +12,22 @@ header {
     justify-content: space-between;
 }
 
+header * {
+    display: flex;
+    align-items: center;
+}
+
+header nav a {
+    color: white;
+    margin: 0 1rem;
+    text-align: center;
+}
+
+header nav a:hover {
+    text-decoration: underline;
+    color: white;
+}
+
 #layout-container > main {
     padding: 1rem 0;
     flex-grow: 1;

@@ -27,6 +27,8 @@ export const signOut = () => auth.signOut();
 
 export const getIdToken = () => auth.currentUser.getIdToken();
 
+export const isSignedIn = () => auth.currentUser ? true : false;
+
 export const ifUserSignedIn = f => auth.onAuthStateChanged(user => {
     if (user) {
         f(user);

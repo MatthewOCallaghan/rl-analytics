@@ -186,7 +186,7 @@ const processMatchResult = async match => {
         const winner = 1 - results[0][0].wins;
 
         // We know stats of those who have played only once, or stats where total is zero
-        const count = 0;
+        var count = 0;
         for (let t = 0; t < updates.length; t++) {
             for (let i = 0; i < updates[t].length; i++) {
                 if (updates[t][i].games === 1) {

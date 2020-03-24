@@ -419,7 +419,7 @@ const addSessionOwner = (req, res, sessionCode, database) => {
     if(!req.body.ownerToken) {
         res.status(400).send('No owner token');
     } else {
-        admin.auth().verifyIdToken(req.token)
+        admin.auth().verifyIdToken(req.body.ownerToken)
             .then(owner => {
                 const ownerId = owner.uid;
 
@@ -427,7 +427,7 @@ const addSessionOwner = (req, res, sessionCode, database) => {
                 .then(code => {
                     code = code.code;
                     if (code === sessionCode) {
-                        database('sessions').insert({ session_id: sessionId, user_id: ownerId }, '*')
+                        database('session_owners').insert({ session_id: sessionId, user_id: ownerId }, '*')
                             .then(ownership => res.json(ownership))
                             .catch(err => {
                                 console.log(err);

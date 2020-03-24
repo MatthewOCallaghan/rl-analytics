@@ -26,3 +26,9 @@ export const signIn = (email, password) => auth.signInWithEmailAndPassword(email
 export const signOut = () => auth.signOut();
 
 export const getIdToken = () => auth.currentUser.getIdToken();
+
+export const ifUserSignedIn = f => auth.onAuthStateChanged(user => {
+    if (user) {
+        f(user);
+    }
+});

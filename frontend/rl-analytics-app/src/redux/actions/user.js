@@ -12,14 +12,16 @@ export const SIGN_OUT_LOADING = 'USER__SIGN_OUT_LOADING';
 export const SIGN_OUT_FAILURE = 'USER__SIGN_OUT_FAILURE';
 
 export const signIn = (email, password) => {
-    return async (dispatch, getState) => {
+    return (dispatch, getState) => {
         dispatch({ type: SIGN_IN_LOADING });
         firebaseSignIn(email, password)
         .then(user => {
             dispatch({ type: SIGN_IN, user: { email: user.user.email, username: user.user.displayName } });
             const session = getState().session;
             if (session.token && session.code) {
-                addSessionOwner(session.code, session.token, await getIdToken());
+                getIdToken()
+                    .then(userToken => addSessionOwner(session.code, session.token, userToken))
+                    .catch(console.log);
             }
         })
         .catch(error => dispatch({ type: SIGN_IN_FAILURE, error }));
@@ -27,7 +29,7 @@ export const signIn = (email, password) => {
 }
 
 export const signUp = (email, password, username) => {
-    return async (dispatch, getState) => {
+    return (dispatch, getState) => {
         dispatch({ type: SIGN_UP_LOADING });
         firebaseCreateUser(email, password)
         .then(user => {
@@ -38,7 +40,9 @@ export const signUp = (email, password, username) => {
                 .then(() => {
                     const session = getState().session;
                     if (session.token && session.code) {
-                        addSessionOwner(session.code, session.token, await getIdToken());
+                        getIdToken()
+                            .then(userToken => addSessionOwner(session.code, session.token, userToken))
+                            .catch(console.log);
                     }
                 });
             }
@@ -54,4 +58,8 @@ export const signOut = () => {
         .then(user => dispatch({ type: SIGN_OUT }))
         .catch(error => dispatch({ type: SIGN_OUT_FAILURE, error }));
     }
+}
+
+export const storeUserDetails = (email, username) => {
+    return dispatch => dispatch({ type: SIGN_IN, user: { email, username } });
 }

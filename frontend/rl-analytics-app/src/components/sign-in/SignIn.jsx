@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const SignIn = () => {
+const SignIn = ({ small }) => {
     return (
-        <Link to='/signin' style={{color: 'white', fontSize: '1.5rem'}}>Log in/Sign up</Link>
+        <Link to='/signin' style={{color: 'white', fontSize: small ? undefined : '1.5rem'}}>Log in/Sign up</Link>
     );
 }
 

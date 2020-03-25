@@ -7,20 +7,12 @@
 header {
     background-color: black;
     color: white;
-    padding: 0.5rem 1rem;
-    display: flex;
-    justify-content: space-between;
-}
-
-header * {
-    display: flex;
-    align-items: center;
 }
 
 header nav a {
     color: white;
-    margin: 0 1rem;
-    text-align: center;
+    text-align: right;
+    margin: 5px 1rem;
 }
 
 header nav a:hover {
@@ -28,7 +20,28 @@ header nav a:hover {
     color: white;
 }
 
+header #logo a {
+    text-decoration: none;
+    margin: 0;
+}
+
 #layout-container > main {
     padding: 1rem 0;
     flex-grow: 1;
+}
+
+.navbar-toggler {
+    border: none;
+}
+
+.navbar-collapse {
+    justify-content: flex-end;
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+.navbar {
+    justify-content: space-between;
 }

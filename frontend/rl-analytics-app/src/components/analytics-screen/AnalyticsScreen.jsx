@@ -18,7 +18,7 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
     const [historyAnalytics, setHistoryAnalytics] = useState(undefined);
 
     useEffect(() => {
-        if (!lastMatch.finished) {
+        if (lastMatch && !lastMatch.finished) {
             setHistoryAnalytics(undefined);
             fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}/${lastMatch.id}/history`)
             .then(response => {

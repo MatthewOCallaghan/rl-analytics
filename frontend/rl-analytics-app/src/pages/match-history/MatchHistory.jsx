@@ -72,6 +72,8 @@ const Match = ({ match, user, setView }) => {
     
     match.startTime = new Date(match.startTime);
 
+    const playerItem = player => <span style={player.name === user ? { textDecoration: 'underline' } : undefined} key={`player:${player}`}>{player.name}</span>;
+
     return (
         <section className={`match-history${match.finished ? ' hover' : ''}`} onClick={match.finished ? () => setView() : undefined}>
             <h1 style={{marginBottom: 0}}>{match.mode}</h1>
@@ -86,7 +88,7 @@ const Match = ({ match, user, setView }) => {
                     </div>
                     <div className='players'>
                         {
-                            match.players[0].map(player => <span key={`player0:${player.name}`}>{player.name}</span>)
+                            match.players[0].map(playerItem)
                         }
                     </div>
                 </div>
@@ -100,7 +102,7 @@ const Match = ({ match, user, setView }) => {
                 <div className='match-history-players match-history-orange-team'>
                     <div className='players'>
                         {
-                            match.players[1].map(player => <span key={`player1:${player.name}`}>{player.name}</span>)
+                            match.players[1].map(playerItem)
                         }
                     </div>
                     <div className='gradient'>

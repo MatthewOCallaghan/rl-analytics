@@ -463,7 +463,7 @@ const getMatchHistory = (req, res, database) => {
             .innerJoin('players', 'matches.id', 'players.match_id')
             .where('session_owners.user_id', '=', userId)
             .then(data => {
-                res.json(processMatches(data));
+                res.json(processMatches(data).sort((a,b) => new Date(b.startTime) - new Date(a.startTime)));
             })
             .catch(err => {
                 console.log(err);

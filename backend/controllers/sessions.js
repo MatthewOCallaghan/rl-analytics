@@ -271,7 +271,7 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
 
     if(!status || !MATCH_STATUSES.includes(status)) {
         res.status(400).send('Invalid status');
-    } else if(status === 'finished' && !(result && Array.isArray(result) && result.length === 2 && Array.isArray(result[0]) && Array.isArray(result[1]) && result[0].concat(result[1]).length > 0 && result[0].concat(result[1]).filter(update => [update.id, update.wins, update.rank, update.division, update.mmrChange].filter(value => value === undefined).length > 0 || !RANK_REGEX.test(update.rank) || !DIVISION_REGEX.test(update.division) || !Number.isInteger(update.mmrChange)).length === 0 && result[0].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]) && result[1].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]))) {
+    } else if(status === 'finished' && !(result && Array.isArray(result) && result.length === 2 && Array.isArray(result[0]) && Array.isArray(result[1]) && result[0].concat(result[1]).length > 0 && result[0].concat(result[1]).filter(update => [update.id, update.wins].filter(value => value === undefined).length > 0 || (update.rank !== undefined && !RANK_REGEX.test(update.rank)) || (update.division !== undefined && !DIVISION_REGEX.test(update.division)) || (update.mmrChange !== undefined && !Number.isInteger(update.mmrChange))).length === 0 && result[0].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]) && result[1].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]))) {
         res.status(400).send('Incorrect result format');
     } else {
         database.select('code')
@@ -471,6 +471,105 @@ const getMatchHistory = (req, res, database) => {
             });
 }
 
+const getPlayerAnalytics = (req, res, sessionCode, matchId, database) => {
+    database.select('players.name', 'players.team')
+            .from('players').innerJoin('matches', 'matches.id', 'players.match_id').innerJoin('sessions', 'sessions.id', 'matches.session_id')
+            .where('matches.id', '=', matchId).andWhere('sessions.code', '=', sessionCode)
+        .then(data => {
+
+            if(data.length === 0) {
+                res.status(400).send('Code or match does not exist');
+                return;
+            }
+
+            var players = data.reduce((acc, player) => acc.map((teamAcc, i) => player.team === i ? teamAcc.concat(player.name) : teamAcc), [[],[]]);
+
+            database.select('matches.id AS matchId', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change')
+                .from('sessions')
+                .innerJoin('session_owners', 'sessions.id', 'session_owners.session_id')
+                .innerJoin('matches', 'sessions.id', 'matches.session_id')
+                .innerJoin('players', 'matches.id', 'players.match_id')
+                .whereIn('session_owners.user_id', database.select('user_id').from('session_owners').innerJoin('sessions', 'session_owners.session_id', 'sessions.id').where('code', '=', sessionCode))
+                .then(data => {
+                    var matches = processMatches(data);
+                    const STATS = ['goals', 'assists', 'saves', 'shots', 'wins', 'mvps'];
+
+                    // Collect player stats
+                    players = players.map(teamPlayers => teamPlayers.map(player => {
+                        const playerData = { 
+                            name: player,
+                            games: 0
+                        };
+                        
+                        STATS.forEach(stat => playerData[stat] = { games: 0, value: 0 });
+
+                        matches.forEach(match => {
+                            const blueTeamPlayer = match.players[0].filter(player => player.name === playerData.name)[0];
+                            const orangeTeamPlayer = !blueTeamPlayer && match.players[1].filter(player => player.name === playerData.name)[0];
+                            const player = blueTeamPlayer || orangeTeamPlayer;
+                            if(player) {
+                                playerData.games++;
+                                if (player.result) {
+                                    STATS.forEach(stat => {
+                                        if (player.result[stat] !== null) {
+                                            playerData[stat].games++;
+                                            playerData[stat].value += player.result[stat];
+                                        }
+                                    })
+                                }
+                            }
+                        });
+
+                        STATS.forEach(stat => {
+                            playerData[stat] = playerData[stat].games ? (playerData[stat].games >= 10 ? Math.round((playerData[stat].value / playerData[stat].games) * 10) / 10 : `${playerData[stat].value}/${playerData[stat].games}`) : undefined;
+                        })
+
+                        return playerData;
+                    }));
+
+                    // Calculate rank for each player so we can prioritise matches with rarer players
+                    const playerRanks = {};
+                    players[0].concat(players[1]).map(player => ({ name: player.name, games: player.games }))
+                            .sort((a, b) => b.games - a.games)
+                            .map((player, i) => ({ name: player.name, rank: Math.pow(i+1,2) }))
+                            .forEach(player => playerRanks[player.name] = player.rank);
+
+                    // Get top five matches by rank
+                    matches = matches.filter(match => match.finished && match.finished.completed)
+                                     .map(match => ({
+                                         match,
+                                         rank: match.players[0].concat(match.players[1]).map(player => playerRanks[player.name]).reduce((acc, rank) => rank ? acc + rank : acc, 0)
+                                     }))
+                                     .filter(matchRank => matchRank.rank)
+                                     .sort((a,b) => {
+                                         const r = b.rank - a.rank;
+                                         if (r !== 0) {
+                                             return r;
+                                         }
+                                         return b.match.startTime - a.match.startTime;
+                                     })
+                                     .slice(0,5)
+                                     .map(matchRank => matchRank.match);
+
+                    // Add focus property to player in match if they are one of the players involved in the game
+                    matches = matches.map(match => ({ ...match, players: match.players.map(teamPlayers => teamPlayers.map(player => ({ ...player, focus: Object.keys(playerRanks).includes(player.name)})))}));
+
+                    res.json({
+                        matches,
+                        players
+                    });
+                })
+                .catch(err => {
+                    console.log(err);
+                    res.sendStatus(500);
+                });
+        })
+        .catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+        });
+}
+
 const checkValidSessionCode = (req, res, next) => {
     const code = req.params.code;
 
@@ -528,6 +627,7 @@ const verifyFirebaseId = (req, res, next) => {
     admin.auth().verifyIdToken(req.token)
         .then(user => {
             req.id = user.uid;
+            req.username = user.name;
             next();
         })
         .catch(error => {
@@ -544,6 +644,7 @@ module.exports = {
     submitResult,
     addSessionOwner,
     getMatchHistory,
+    getPlayerAnalytics,
     checkTokenExists,
     handleTokenIfExists,
     checkValidSessionCode,

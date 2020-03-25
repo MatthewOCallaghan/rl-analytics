@@ -28,14 +28,14 @@ const Header = () => {
         <header>
             <Logo />
             {
-                user.email &&
+                user && user.email &&
                 <nav>
                     {/* <Link to='/session'>{session.token ? 'Continue session' : 'New session'}</Link>
                     <Link to='/display'>View session</Link> */}
                     <Link to='/matches'>Match history</Link>
                 </nav>
             }
-            <SignInSignOut />
+            <SignInSignOut smallSignOut={user && user.email} />
         </header>
     );
 }

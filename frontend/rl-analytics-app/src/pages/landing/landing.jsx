@@ -24,7 +24,7 @@ const Landing = () => {
     return (
         <div id='landing-container'>
             <span style={{position: 'absolute', top: 20, right: '5%'}}>
-                <SignInSignOut />
+                <SignInSignOut fullSignOut />
             </span>
             <Particles />
             <Container>

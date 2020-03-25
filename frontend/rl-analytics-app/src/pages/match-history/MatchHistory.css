@@ -70,3 +70,9 @@ section.match-history .match-history-score {
     font-weight: bold;
     font-size: 1.3rem;
 }
+
+#match-history-status {
+    width: 100%;
+    color: red;
+    text-align: center;
+}

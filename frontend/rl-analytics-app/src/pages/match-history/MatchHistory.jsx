@@ -9,6 +9,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from '../../components/button/Button';
+import Spinner from 'react-bootstrap/Spinner';
 
 import './MatchHistory.css';
 
@@ -30,7 +31,13 @@ const MatchHistory = () => {
             {
                 selectedMatch
                     ?   <MatchResultScreen match={selectedMatch} goBack={() => setView('list')} />
-                    :   matchHistory.matches && matchHistory.matches.map((match, index) => <Match key={`Match:${index}${match}`} match={match} user={user && user.displayName} setView={() => setView(match.id)} />)
+                    :   matchHistory.error
+                            ?   <div id='match-history-status'>Error loading match history</div>
+                            :   matchHistory.loading
+                                    ?   <div id='match-history-status'><Spinner animation='border' role='status' variant='dark'>
+                                            <span className='sr-only'>Loading...</span>
+                                        </Spinner></div>
+                                    :   matchHistory.matches && matchHistory.matches.map((match, index) => <Match key={`Match:${index}${match}`} match={match} user={user && user.username} setView={() => setView(match.id)} />)
             }
         </Layout>
     );
@@ -55,17 +62,20 @@ const MatchResultScreen = ({ match, goBack }) => {
 
 const Match = ({ match, user, setView }) => {
 
-    const goals = match.finished && match.finished.complete && match.players.map(team => team.reduce((acc, player) => acc === undefined ? acc : player.result.goals === undefined ? undefined : acc + player.result.goals, 0));
+    const goals = match.finished && match.finished.completed && match.players.map(team => team.reduce((acc, player) => acc === undefined ? acc : player.result.goals === undefined ? undefined : acc + player.result.goals, 0));
 
-    const winner = match.finished && match.finished.complete && (1 - match.players[0][0].result.wins);
+    const winner = match.finished && match.finished.completed && (1 - match.players[0][0].result.wins);
 
     const isInTeam = team => match.players[team].filter(player => player.name === user).length > 0;
 
     const result = user && (winner === 0 || winner === 1) && (isInTeam(0) ? (winner ? 'lost' : 'won') : isInTeam(1) ? (winner ? 'won' : 'lost') : undefined);
     
+    match.startTime = new Date(match.startTime);
+
     return (
         <section className={`match-history${match.finished ? ' hover' : ''}`} onClick={match.finished ? () => setView() : undefined}>
-            <h1>{match.mode}</h1>
+            <h1 style={{marginBottom: 0}}>{match.mode}</h1>
+            <p style={{marginBottom: 0}}>{`${match.startTime.getDate()}/${match.startTime.getMonth()+1}/${match.startTime.getFullYear().toString().slice(2)}`}</p>
             <div className='match-history-row'>
                 <div className='match-history-players match-history-blue-team'>
                     <div className='gradient'>
@@ -76,7 +86,7 @@ const Match = ({ match, user, setView }) => {
                     </div>
                     <div className='players'>
                         {
-                            match.players[0].map(player => player.name)
+                            match.players[0].map(player => <span key={`player0:${player.name}`}>{player.name}</span>)
                         }
                     </div>
                 </div>
@@ -90,7 +100,7 @@ const Match = ({ match, user, setView }) => {
                 <div className='match-history-players match-history-orange-team'>
                     <div className='players'>
                         {
-                            match.players[1].map(player => player.name)
+                            match.players[1].map(player => <span key={`player1:${player.name}`}>{player.name}</span>)
                         }
                     </div>
                     <div className='gradient'>

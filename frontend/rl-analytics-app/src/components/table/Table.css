@@ -1,11 +1,11 @@
 table.scoreboard-table {
     text-align: center;
     font-family: 'Bourgeois Book';
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 table.scoreboard-table th {
-    padding: 0 15px;
+    padding: 0 8px;
 }
 
 table.scoreboard-table tr {
@@ -16,7 +16,7 @@ table.scoreboard-table tr {
 
 table.scoreboard-table tr > td {
     color: white;
-    padding: 2px 15px;
+    padding: 2px 8px;
 }
 
 table.scoreboard-table tr > td:first-child {

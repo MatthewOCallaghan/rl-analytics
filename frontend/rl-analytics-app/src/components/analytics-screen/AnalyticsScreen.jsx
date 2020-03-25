@@ -1,19 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import PlayerTable from '../player-table/PlayerTable';
-import Button from '../../components/button/Button';
-import FormChart from '../../components/form-chart/FormChart';
-import MatchResult from '../../components/match-result/MatchResult';
+import Button from '../button/Button';
+import FormChart from '../form-chart/FormChart';
+import MatchResult from '../match-result/MatchResult';
+import FeaturedMatches from '../featured-matches/FeaturedMatches';
 
 import './AnalyticsScreen.css';
 
 const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction, host }) => {
     const lastMatch = matches[matches.length - 1];
     
+    const [historyAnalytics, setHistoryAnalytics] = useState(undefined);
+
+    useEffect(() => {
+        if (!lastMatch.finished) {
+            setHistoryAnalytics(undefined);
+            fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}/${lastMatch.id}/history`)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return new Error(response.statusText);
+            })
+            .then(data => {
+                if (data.matches.length > 0 || !data.players.every(player => player.games)) {
+                    setHistoryAnalytics(data);
+                }
+            })
+            .catch(console.log);
+        }
+    }, [lastMatch, code]);
+
     return (
         <Container className='session-container' fluid>
             <Row>
@@ -23,23 +45,31 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
                     { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
                 </Col>
             </Row>
-            <Row>
-                {
-                    matches.length === 0
-                        ?   <Col xs={12}><p>No matches played yet...</p></Col>
-                        :   lastMatch.finished
-                                ?   <Col xs={12}><MatchResult match={lastMatch} /></Col>
-                                :   <>
-                                        <Col xs={12} xl={8}>
-                                            <PlayerTable match={lastMatch} canEdit={host} />
+            {
+                matches.length === 0
+                    ?   <Row><Col xs={12}><p>No matches played yet...</p></Col></Row>
+                    :   lastMatch.finished
+                            ?   <Row><Col xs={12}><MatchResult match={lastMatch} /></Col></Row>
+                            :   <>
+                                    <Row>
+                                        <Col xs={12}>
+                                            <PlayerTable match={lastMatch} canEdit={host} playerHistory={historyAnalytics && historyAnalytics.players} />
                                         </Col>
-                                        <Col xs={12} xl={4} style={{paddingBottom: '1rem'}}>
+                                    </Row>
+                                    <Row>
+                                        <Col xs={12} md={5} lg={6} style={{paddingBottom: '1rem'}}>
                                             <h2>Form</h2>
                                             <FormChart players={lastMatch.players} />
                                         </Col>
-                                    </>
-                }
-            </Row>
+                                        {
+                                            historyAnalytics && historyAnalytics.matches && historyAnalytics.matches.length > 0 &&
+                                            <Col xs={12} md={7} lg={6} >
+                                                <FeaturedMatches matches={historyAnalytics.matches} />
+                                            </Col>
+                                        }
+                                    </Row>
+                                </>
+            }
             <Row>
                 <Col xs={12} className='session-button-row'>
                     {secondaryButtonText && <Link to='/' style={{minWidth: '25%', maxWidth: '40%'}}><Button colour='black' style={{minWidth: '100%'}} ghost large handleOnClick={secondaryButtonAction ? () => secondaryButtonAction() : undefined}>{secondaryButtonText}</Button></Link>}

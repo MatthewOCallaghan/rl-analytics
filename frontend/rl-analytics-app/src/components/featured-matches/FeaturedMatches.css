@@ -1,0 +1,11 @@
+.carousel-control-next,
+.carousel-control-prev,
+.carousel-indicators {
+    filter: invert(100%);
+}
+
+#featured-matches {
+    border: black solid 1px;
+    padding: 10px;
+    border-radius: 10px;
+}

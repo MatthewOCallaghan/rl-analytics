@@ -142,7 +142,7 @@ const processMatchResult = async match => {
             acc[index < updates.length / 2 ? 0 : 1].push(update);
             return acc;
         }, [[],[]]);
-        var results = match.players.map(teamPlayers => teamPlayers.map(player => ({})));
+        var results = updates.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ rank: player.rank || match.players[teamIndex][playerIndex].rank, division: player.division || match.players[teamIndex][playerIndex].division, mmrChange: player.mmrChange })));
         console.log(`Updates retrieved`);
         // Determine who won
         const determineWins = (results, updates) => {
@@ -242,7 +242,7 @@ const processMatchResult = async match => {
         // For every goalless pair in a team, the third player got no assists
         for (let t = 0; t < updates.length; t++) {
             for (let i = 0; i < updates[t].length; i++) {
-                if (results[t].reduce((acc, player, index) => index !== i && player.goals !== undefined ? acc + player.goals : acc, 0) === 0) {
+                if (results[t].reduce((acc, player, index) => index !== i ? (player.goals !== undefined ? acc + player.goals : 1) : acc, 0) === 0) {
                     results[t][i].assists = 0;
                 }                
             }            

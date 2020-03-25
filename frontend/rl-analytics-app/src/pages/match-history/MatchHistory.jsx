@@ -83,7 +83,7 @@ const Match = ({ match, user, setView }) => {
                 <div className='match-history-score' style={{color: result === 'won' ? 'green' : result === 'lost' ? 'red' : '#5d5d5d'}}>
                     {
                         match.finished
-                            ?   <span style={{fontSize: '2.5rem'}}>{goals[0] ?? '?'} - {goals[1] ?? '?'}</span>
+                            ?   <span style={{fontSize: '2.5rem'}}>{goals && goals[0] !== undefined ? goals[0] : '?'} - {goals && goals[1] !== undefined ? goals[1] : '?'}</span>
                             :   <span>IN<br/>PROGRESS</span>
                     }
                 </div>

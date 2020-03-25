@@ -13,7 +13,7 @@ import { editUsername } from '../../redux/actions/matches';
 
 import './PlayerTable.css';
 
-const Analytics = ({ match, canEdit }) => {
+const PlayerTable = ({ match, canEdit, playerHistory }) => {
     const [editing, setEditing] = useState(null);
     const [textBoxValue, setTextBoxValue] = useState('');
     const dispatch = useDispatch();
@@ -49,17 +49,17 @@ const Analytics = ({ match, canEdit }) => {
                     </div>
                 }
             </Modal>
-            <Team name='BLUE' players={match.players[0]} season={match.season} setEditing={handleSetEditing(0)} canEdit={canEdit} colour='blue' />
-            <Team name='ORANGE' players={match.players[1]} season={match.season} setEditing={handleSetEditing(1)} canEdit={canEdit} colour='orange' />
+            <Team name='BLUE' players={match.players[0]} season={match.season} setEditing={handleSetEditing(0)} canEdit={canEdit} colour='blue' playerHistory={playerHistory && playerHistory[0]} />
+            <Team name='ORANGE' players={match.players[1]} season={match.season} setEditing={handleSetEditing(1)} canEdit={canEdit} colour='orange' playerHistory={playerHistory && playerHistory[1]} />
         </section>
     );
 }
 
-const Team = ({ name, players, colour, season, setEditing, canEdit }) => {
+const Team = ({ name, players, colour, season, setEditing, canEdit, playerHistory }) => {
 
-    const headings = [undefined, undefined, 'MMR', 'PLAYSTYLE\n(GOALS:SAVES:ASSISTS)', 'GAMES\nPLAYED', 'MVP/WIN', 'Streak', 'DIV\nUP/DOWN'];
-
-    const rows = players.map((player, index) => [
+    const headings = [undefined, undefined, 'MMR*', 'PLAYSTYLE\n(GOALS:SAVES:ASSISTS)', 'GAMES\nPLAYED*', 'MVP/WIN', 'Streak', 'DIV\nUP/DOWN*'];
+    
+    var rows = players.map((player, index) => [
         <PlayerRank loading={player.loading} error={player.error} playerName={player.name} rank={player.rank} division={player.division} />,
         <div style={{display: 'inline-flex'}}><span style={{color: player.error ? 'red' : undefined}}>{player.name}</span>{canEdit && <span className='pointer-on-hover' style={{marginLeft: 3}} onClick={() => setEditing(index)}><EditIcon /></span>}</div>,
         player.mmr,
@@ -80,9 +80,26 @@ const Team = ({ name, players, colour, season, setEditing, canEdit }) => {
 
     ]);
 
+    if (playerHistory) {
+        headings.push('GAMES\nRECORDED', 'WINS/\nGAME**', 'GOALS/\nGAME**', 'ASSISTS/\nGAME**', 'SAVES/\nGAME**', 'SHOTS/\nGAME**', 'MVPS/\nGAME**');
+
+        rows = rows.map((row, index) => {
+            const player = playerHistory[index] ?? {};
+            return row.concat([
+                player.games,
+                player.wins,
+                player.goals,
+                player.assists,
+                player.saves,
+                player.shots,
+                player.mvps
+            ]);
+        });
+    }
+
 
     return (
-        <Table title={name} headings={headings} rows={rows} caption={`Season ${season || 13} stats`} colour={colour} responsive />
+        <Table title={name} headings={headings} rows={rows} caption={`*Season ${season || 14} stats${playerHistory ? '\xa0\xa0\xa0**Calculated only from saved matches where stat could be determined' : ''}`} colour={colour} responsive />
     );
 }
 
@@ -158,4 +175,4 @@ const Team = ({ name, players, colour, season, setEditing, canEdit }) => {
 //     );
 // }
 
-export default Analytics;
+export default PlayerTable;

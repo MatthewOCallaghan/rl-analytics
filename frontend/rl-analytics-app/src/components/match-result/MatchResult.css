@@ -5,3 +5,12 @@
 .match-result-team {
     margin: 30px auto;
 }
+
+.match-result-compact h2 {
+    margin-bottom: 0;
+}
+
+.match-result-compact .match-result-team {
+    margin-top: 0;
+    margin-bottom: 0;
+}

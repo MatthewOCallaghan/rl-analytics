@@ -6,7 +6,7 @@ import { MVP } from '../../images';
 
 import './MatchResult.css';
 
-const MatchResult = ({ match }) => {
+const MatchResult = ({ match, compact, noTitle }) => {
     const winner = match.finished.completed ? 1 - match.players[0][0].result.wins : undefined;
 
     const showScore = match.finished.completed && match.players[0].concat(match.players[1]).filter(player => player.result.goals === undefined).length === 0;
@@ -14,30 +14,30 @@ const MatchResult = ({ match }) => {
     const blanks = match.finished.completed && match.players[0].concat(match.players[1]).map(player => player.result).filter(playerResult => ![playerResult.goals, playerResult.assists, playerResult.saves, playerResult.shots, playerResult.mmrChange].every(Number.isInteger)).length > 0;
 
     return (
-        <>
-            <h2>{match.finished.loading ? 'Calculating result...' : match.finished.error ? `Result: ${match.finished.error}` : 'Result'}</h2>
+        <section className={compact ? 'match-result-compact' : undefined}>
+            { !noTitle && <h2>{match.finished.loading ? 'Calculating result...' : match.finished.error ? `Result: ${match.finished.error}` : 'Result'}</h2>}
             { blanks && <p style={{fontStyle: 'italic'}}>Some stats are blank where they could not be determined</p> }
             <div className='match-result-team'>
                 { winner !== undefined && winner === 0 && <span className='winner' style={{color: 'blue'}}>Winner</span> }
-                <Team name='BLUE' colour='blue' players={match.players[0]} loading={match.finished.loading} error={match.finished.error} showScore={showScore} />
+                <Team name='BLUE' colour='blue' players={match.players[0]} loading={match.finished.loading} error={match.finished.error} showScore={showScore} compact={compact} />
             </div>
             <div className='match-result-team'>
                 { winner !== undefined && winner === 1 && <span className='winner' style={{color: 'orange'}}>Winner</span> }
-                <Team name='ORANGE' colour='orange' players={match.players[1]} loading={match.finished.loading} error={match.finished.error} showScore={showScore} />
+                <Team name='ORANGE' colour='orange' players={match.players[1]} loading={match.finished.loading} error={match.finished.error} showScore={showScore} compact={compact} />
             </div>
-        </>
+        </section>
     );
 }
 
-const Team = ({ name, colour, players, loading, error, showScore }) => {
+const Team = ({ name, colour, players, loading, error, showScore, compact }) => {
 
     const headings = [undefined, undefined, 'GOALS', 'ASSISTS', 'SAVES', 'SHOTS', 'MMR\nCHANGE'];
 
-    const rows = loading 
-                    ?   players.map(player => [<PlayerRank loading />, player.name, undefined, undefined, undefined, undefined, undefined])
+    const rows = loading || error
+                    ?   players.map(player => [<PlayerRank loading={loading} error={error} />, player.name, undefined, undefined, undefined, undefined, undefined])
                     :   players.map(player => [
-                            <PlayerRank error={error || player.result.error} playerName={player.name} rank={player.result.rank} division={player.result.division} />,
-                            <div style={{display: 'inline-flex'}}><span style={{color: error || player.result.error ? 'red' : undefined}}>{player.name}</span>{player.result.mvps === 1 && <img src={MVP} alt={`${player.name} was MVP`}/>}</div>,
+                            <PlayerRank error={error || player.result.error || !player.result.rank} playerName={player.name} rank={player.result.rank} division={player.result.division} />,
+                            <div style={{display: 'flex', alignItems: 'center'}}><span style={{color: error || player.result.error ? 'red' : undefined, textDecoration: player.focus ? 'underline' : undefined}}>{player.name}</span>{player.result.mvps === 1 && <img style={{marginLeft: 5}} src={MVP} alt={`${player.name} was MVP`}/>}</div>,
                             player.result.goals ?? '',
                             player.result.assists ?? '',
                             player.result.saves ?? '',

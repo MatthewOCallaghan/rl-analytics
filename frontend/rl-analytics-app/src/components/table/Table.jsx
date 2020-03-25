@@ -17,7 +17,7 @@ const Table = ({ title, headings, rows, caption, responsive, colour }) => {
                                     <th key={'table-heading:' + heading + index}>
                                         {
                                             heading && heading.includes(`\n`)
-                                                ?   heading.split(`\n`).reduce((acc, h, index, arr) => acc.concat(index === arr.length - 1 ? h : [h, <br/>]), [])
+                                                ?   heading.split(`\n`).reduce((acc, h, index, arr) => acc.concat(index === arr.length - 1 ? h : [h, <br key={`br:${index}`} />]), [])
                                                 :   heading
                                         }
                                     </th>

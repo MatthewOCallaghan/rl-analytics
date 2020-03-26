@@ -16,7 +16,7 @@ const AUTH_FORMAT = /^Bearer .*$/;
 
 const INTEGER_REGEX = /^\d+$/;
 
-const RANK_REGEX = /^((Bronze|Silver|Gold|Platinum|Diamond|Champion) I{1,3}|Grand champion)$/;
+const RANK_REGEX = /^((Unranked|Bronze|Silver|Gold|Platinum|Diamond|Champion) I{1,3}|Grand champion)$/;
 
 const DIVISION_REGEX = /^I(I{1,2}|V)?$/;
 

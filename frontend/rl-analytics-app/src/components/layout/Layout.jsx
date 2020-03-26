@@ -53,6 +53,7 @@ const Header = () => {
                                 <Navbar.Collapse>
                                     <Nav>
                                         <Link to='/matches'>Match history</Link>
+                                        <Link to='/tracking'>Stats tracker</Link>
                                         <SignInSignOut smallSignOut={user && user.email} />
                                     </Nav>
                                 </Navbar.Collapse>

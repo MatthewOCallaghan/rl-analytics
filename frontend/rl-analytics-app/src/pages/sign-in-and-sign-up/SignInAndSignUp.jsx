@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useLocation, Redirect, useHistory } from 'react-router-dom';
+import { useLocation, Redirect } from 'react-router-dom';
 
 import { signIn, signUp } from '../../redux/actions/user';
 
@@ -18,10 +18,7 @@ import './SignInAndSignUp.css';
 const SignInAndSignUp = () => {
     const status = useSelector(store => store.user);
     const location = useLocation();
-    console.log(location);
-
-    const history = useHistory();
-    console.log(history);
+    
     return (
         <>
             {

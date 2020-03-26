@@ -12,6 +12,7 @@ import Display from './pages/display/display';
 import Session from './pages/session/session';
 import SignInAndSignUp from './pages/sign-in-and-sign-up/SignInAndSignUp';
 import MatchHistory from './pages/match-history/MatchHistory';
+import Tracking from './pages/tracking/Tracking';
 import NotFound from './pages/404/404';
 
 function App() {
@@ -41,6 +42,9 @@ function App() {
         </Route>
         <PrivateRoute path='/matches' >
           <MatchHistory />
+        </PrivateRoute>
+        <PrivateRoute path='/tracking' >
+          <Tracking />
         </PrivateRoute>
         <Route path='*' >
           <NotFound />

@@ -12,24 +12,12 @@
     margin-bottom: 0;
 }
 
-/* #tracking-options-panel .accordion .card-header:hover {
-    cursor: pointer;
-} */
-
 #tracking-options-panel .card-header {
     border: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
-/* #tracking-options-panel .accordion .card-header-no-data {
-    
-} */
-
-/* #tracking-options-panel .accordion .card-header-no-data:hover {
-    cursor: default;
-} */
 
 #tracking-options-panel .accordion {
     width: 100%;
@@ -81,8 +69,12 @@
 #tracking-options-panel .card-body {
     display: grid;
     grid-template-columns: auto auto;
-    grid-row-gap: 10px;
+    grid-row-gap: 15px;
     grid-column-gap: 5px;
+}
+
+#tracking-options-panel .card-body label {
+    margin: 0;
 }
 
 #tracking-options-panel input {
@@ -95,4 +87,8 @@
 
 #tracking-options-panel #new-username button {
     margin-left: 10px;
+}
+
+#tracking-options-panel small {
+    margin-bottom: 0;
 }

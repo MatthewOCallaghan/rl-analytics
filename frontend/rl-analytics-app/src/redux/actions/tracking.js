@@ -55,7 +55,7 @@ export const getPlayerStats = (username) => {
                     }
                     return Promise.reject(new Error(response.statusText));
                 })
-                .then(data => dispatch({ type: GET_PLAYER_STATS, data, username }))
+                .then(data => data.length > 0 ? dispatch({ type: GET_PLAYER_STATS, data, username }) : dispatch({ type: PLAYER_STATS_FAILURE, username }))
                 .catch(err => {
                     console.log(err);
                     dispatch({ type: PLAYER_STATS_FAILURE, username });

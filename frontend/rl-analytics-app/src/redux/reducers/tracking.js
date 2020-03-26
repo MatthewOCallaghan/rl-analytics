@@ -5,7 +5,7 @@ import { GAME_MODES } from '../actions/session';
 
 const INITIAL_STATE = {
     matchHistory: {},
-    players: {}
+    players: []
 }
 
 const tracking = (state=INITIAL_STATE, action) => {
@@ -17,16 +17,15 @@ const tracking = (state=INITIAL_STATE, action) => {
         case MATCH_HISTORY_FAILURE:
             return { ...state, matchHistory: { error: true } };
         case GET_PLAYER_STATS:
-            return { ...state, players: { ...state.players, [action.username]: { data: action.data, modes: GAME_MODES.reduce((acc, mode) => ({ ...acc, [mode.title]: true }), {}) } } };
+            return { ...state, players: state.players.filter(player => player.username !== action.username).concat({ username: action.username, data: action.data, modes: GAME_MODES.reduce((acc, mode) => ({ ...acc, [mode.title]: true }), {}) }) };
         case LOADING_PLAYER_STATS:
-            return { ...state, players: { ...state.players, [action.username]: { loading: true } } };
+            return { ...state, players: state.players.filter(player => player.username !== action.username).concat({ username: action.username, loading: true }) };
         case PLAYER_STATS_FAILURE:
-            return { ...state, players: { ...state.players, [action.username]: { error: true } } };
+            return { ...state, players: state.players.filter(player => player.username !== action.username).concat({ username: action.username, error: true }) };
         case CHANGE_MODE_VIEW:
-            return { ...state, players: { ...state.players, [action.username]: { ...state.players[action.username], modes: { ...state.players[action.username].modes, [action.mode]: action.show } } } };
+            return { ...state, players: state.players.map(player => player.username !== action.username ? player : { ...player, modes: { ...player.modes, [action.mode]: action.show } }) };
         case REMOVE_PLAYER_TRACKING:
-            delete state.players[action.username];
-            return state;
+            return { ...state, players: state.players.filter(player => player.username !== action.username) };
         case SIGN_OUT:
             return INITIAL_STATE;
         default:

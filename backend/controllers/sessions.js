@@ -570,6 +570,62 @@ const getPlayerAnalytics = (req, res, sessionCode, matchId, database) => {
         });
 }
 
+const getPlayerStats = (req, res, username, database) => {
+    const userId = req.id;
+    
+    database.select(database.raw('matches.start_time::date AS date'), 'mode', database.raw('COUNT(*) AS games'), database.raw('SUM(goals) AS goals'), database.raw('COUNT(goals) AS goals_games'), database.raw('SUM(assists) AS assists'), database.raw('COUNT(assists) AS assists_games'), database.raw('SUM(saves) AS saves'), database.raw('COUNT(saves) AS saves_games'), database.raw('SUM(shots) AS shots'), database.raw('COUNT(shots) AS shots_games'), database.raw('SUM(CASE WHEN winner = team THEN 1 ELSE 0 END) AS wins'), database.raw('SUM(CASE WHEN mvp IS NULL THEN null WHEN mvp = players.id THEN 1 ELSE 0 END) AS mvps'), database.raw('COUNT(CASE WHEN mvp IS NULL THEN null WHEN mvp = players.id THEN 1 ELSE 0 END) AS mvps_games'))
+            .from('players').innerJoin('matches', 'matches.id', 'players.match_id').innerJoin('sessions', 'sessions.id', 'matches.session_id').innerJoin('session_owners', 'sessions.id', 'session_owners.session_id')
+            .where('status', '=', 'finished').andWhere('name', '=', username).andWhere('user_id', '=', userId)
+            .groupBy('date', 'mode')
+            .orderBy('date')
+        .then(data => {
+            const processedData = [];
+            let current = { modes: [] };
+            data.forEach((record, index) => {
+                if (current.date && new Date(record.date) > new Date(current.date)) {
+                    // Start new date
+                    processedData.push(current);
+                    current = { modes: [] };
+                }
+                current.date = record.date;
+                current.modes.push({
+                    title: record.mode,
+                    games: record.games,
+                    wins: record.wins,
+                    goals: {
+                        value: record.goals,
+                        games: record.goals_games
+                    },
+                    assists: {
+                        value: record.assists,
+                        games: record.assists_games
+                    },
+                    saves: {
+                        value: record.saves,
+                        games: record.saves_games
+                    },
+                    shots: {
+                        value: record.shots,
+                        games: record.shots_games
+                    },
+                    mvps: {
+                        value: record.mvps,
+                        games: record.mvps_games
+                    }
+                });
+                if (index === data.length - 1) {
+                    // Make sure last one gets pushed
+                    processedData.push(current);
+                }
+            });
+            res.json(processedData);
+        })
+        .catch(err => {
+            console.log(err);
+            res.sendStatus(500);
+        });
+}
+
 const checkValidSessionCode = (req, res, next) => {
     const code = req.params.code;
 
@@ -645,6 +701,7 @@ module.exports = {
     addSessionOwner,
     getMatchHistory,
     getPlayerAnalytics,
+    getPlayerStats,
     checkTokenExists,
     handleTokenIfExists,
     checkValidSessionCode,

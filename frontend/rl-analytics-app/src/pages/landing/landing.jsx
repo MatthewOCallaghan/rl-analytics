@@ -9,7 +9,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Box from '../../components/box/Box';
 import Particles from '../../components/particles/Particles';
-import SignInSignOut from '../../components/sign-in-sign-out/SignInSignOut';
+import Navbar from '../../components/navbar/Navbar';
 
 import { handleTextBoxChange, isSessionCodeFormatValid } from '../display/display';
 
@@ -23,9 +23,10 @@ const Landing = () => {
 
     return (
         <div id='landing-container'>
-            <span style={{position: 'absolute', top: 20, right: '5%'}}>
+            {/* <span style={{position: 'absolute', top: 20, right: '5%'}}>
                 <SignInSignOut fullSignOut />
-            </span>
+            </span> */}
+            <div style={{position: 'absolute', top: 10, width: '100%' }}><Navbar landing /></div>
             <Particles />
             <Container>
                 <Row>

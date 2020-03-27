@@ -59,7 +59,7 @@ const SignIn = () => {
     return (
         <Box colour='blue' style={{marginTop: 10, marginBottom: 10}}>
             <h2>Sign in</h2>
-            { status.signIn.error && <p style={{color: 'red'}}>{status.signIn.error.message}</p> }
+            { status.signIn.error && <p style={{color: 'red'}}>{status.signIn.error}</p> }
             <div className='space-evenly'>
                 <TextBox type='email' placeholder='Email' value={email} handleOnChange={setEmail} />
                 <TextBox type='password' placeholder='Password' value={password} handleOnChange={setPassword} />
@@ -89,7 +89,7 @@ const SignUp = () => {
     return (
         <Box colour='orange' style={{marginTop: 10, marginBottom: 10}}>
             <h2>Sign up</h2>
-            { status.signUp.error && <p style={{color: 'red'}}>{status.signUp.error.message}</p> }
+            { status.signUp.error && <p style={{color: 'red'}}>{status.signUp.error}</p> }
             <div className='space-evenly' >
                 <div><TextBox placeholder='Username' value={username} handleOnChange={setUsername} helpText={'Steam ID, PSN name or XBOX gamertag'} /></div>
                 <TextBox type='email' placeholder='Email' value={email} handleOnChange={setEmail} />

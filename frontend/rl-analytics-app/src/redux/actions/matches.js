@@ -142,7 +142,7 @@ const processMatchResult = async match => {
             acc[index < updates.length / 2 ? 0 : 1].push(update);
             return acc;
         }, [[],[]]);
-        var results = updates.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ rank: player.rank || match.players[teamIndex][playerIndex].rank, division: player.division || match.players[teamIndex][playerIndex].division, mmrChange: player.mmrChange })));
+        var results = updates.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ id: player.id, rank: player.rank || match.players[teamIndex][playerIndex].rank, division: player.division || match.players[teamIndex][playerIndex].division, mmrChange: player.mmrChange })));
         console.log(`Updates retrieved`);
         // Determine who won
         const determineWins = (results, updates) => {
@@ -210,18 +210,22 @@ const processMatchResult = async match => {
         // MVP
         // Set losing team MVPs to 0
         results[1-winner] = results[1-winner].map(player => ({ ...player, mvps: 0 }));
-        // If already an MVP in results, set other players to 0; Else if only one player with MVPs, they were MVP
+        // If already an MVP in results, set other players to 0; Else if all but one player had zero MVPs, remaining player was MVP; Else if any player has one win and one MVP, they were MVP
         if (results[winner].filter(player => player.mvps).length > 0) {
             results[winner] = results[winner].map(player => ({ ...player, mvps: player.mvps || 0 }));
-        } else if (updates[winner].reduce((acc, player) => player.mvps ? acc + 1 : acc, 0) < 2) {
+        } else if (updates[winner].reduce((acc, player) => player.mvps !== undefined && player.mvps === 0 ? acc + 1 : acc, 0) === updates[winner].length - 1) {
             for (let i = 0; i < updates[winner].length; i++) {
                 results[winner][i].mvps = updates[winner][i].mvps === 0 ? 0 : 1;           
+            }
+        } else if(updates[winner].filter(player => player.wins === 1 && player.mvps === 1).length === 1) {
+            for (let i = 0; i < updates[winner].length; i++) {
+                results[winner][i].mvps = updates[winner][i].wins === 1 && updates[winner][i].mvps === 1 ? 1 : 0;           
             }
         }
 
         // Goals
         // If we know all winning team's goals...
-        if (results[winner].reduce((acc, player) => player.goals ? 0 : acc + 1, 0) === 0) {
+        if (results[winner].reduce((acc, player) => player.goals !== undefined ? acc + 1 : acc, 0) === results[winner].length) {
 
             const winningGoals = results[winner].reduce((acc, player) => acc + player.goals, 0);
 
@@ -239,7 +243,7 @@ const processMatchResult = async match => {
         }
 
         // Assists
-        // For every goalless pair in a team, the third player got no assists
+        // For each player, if their teammates got no goals, they got no assists
         for (let t = 0; t < updates.length; t++) {
             for (let i = 0; i < updates[t].length; i++) {
                 if (results[t].reduce((acc, player, index) => index !== i ? (player.goals !== undefined ? acc + player.goals : 1) : acc, 0) === 0) {

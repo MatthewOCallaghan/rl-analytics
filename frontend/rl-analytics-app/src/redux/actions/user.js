@@ -24,7 +24,23 @@ export const signIn = (email, password) => {
                     .catch(console.log);
             }
         })
-        .catch(error => dispatch({ type: SIGN_IN_FAILURE, error }));
+        .catch(error => dispatch({ type: SIGN_IN_FAILURE, error: getErrorMessage(error.code) }));
+    }
+}
+
+const getErrorMessage = errorCode => {
+    switch (errorCode) {
+        case 'auth/invalid-email':
+            return 'Invalid email address format';
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+            return 'Incorrect email or password';
+        case 'auth/weak-password':
+            return 'Password must be at least 6 characters';
+        case 'auth/email-already-in-use':
+            return 'Account for that email address already exists';
+        default:
+            return 'Sorry, something went wrong...';
     }
 }
 
@@ -47,7 +63,7 @@ export const signUp = (email, password, username) => {
                 });
             }
         })
-        .catch(error => dispatch({ type: SIGN_UP_FAILURE, error }));
+        .catch(error => dispatch({ type: SIGN_UP_FAILURE, error: getErrorMessage(error.code) }));
     }
 }
 

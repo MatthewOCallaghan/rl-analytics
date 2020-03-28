@@ -12,13 +12,13 @@ import FeaturedMatches from '../featured-matches/FeaturedMatches';
 
 import './AnalyticsScreen.css';
 
-const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction, host }) => {
+const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction, host, onOwnershipAction }) => {
     const lastMatch = matches[matches.length - 1];
     
     const [historyAnalytics, setHistoryAnalytics] = useState(undefined);
 
     useEffect(() => {
-        if (lastMatch && !lastMatch.finished) {
+        if (lastMatch && !lastMatch.finished && (!historyAnalytics || historyAnalytics.id !== lastMatch.id)) {
             setHistoryAnalytics(undefined);
             fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}/${lastMatch.id}/history`)
             .then(response => {
@@ -29,19 +29,21 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
             })
             .then(data => {
                 if (data.matches.length > 0 || !data.players.every(player => player.games)) {
-                    setHistoryAnalytics(data);
+                    setHistoryAnalytics({ ...data, id: lastMatch.id });
                 }
             })
             .catch(console.log);
         }
-    }, [lastMatch, code]);
+    }, [lastMatch, code, historyAnalytics]);
 
     return (
         <Container className='session-container' fluid>
             <Row>
+
                 <Col xs={12}>
                     { errorAlert && <span id='analytics-screen-error-alert'>{errorAlert}</span>}
                     <h2>Session code: {code}</h2>
+                    { onOwnershipAction && <Button style={{position: 'absolute', right: 15, top: 0 }} colour={host ? 'black' : 'green'} handleOnClick={onOwnershipAction} >{host ? 'Hosts' : 'Invite pending'}</Button>}
                     { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
                 </Col>
             </Row>

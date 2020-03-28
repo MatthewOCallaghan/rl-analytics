@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Ranks } from '../../images';
-import Spinner from 'react-bootstrap/Spinner';
+import Spinner from '../spinner/Spinner';
 
 const PlayerRank = ({ loading, error, rank, playerName, division }) => {
     return (
@@ -14,9 +14,7 @@ const PlayerRank = ({ loading, error, rank, playerName, division }) => {
             }
             {
                 loading && 
-                <Spinner animation='border' role='status' variant='light' size='sm'>
-                    <span className='sr-only'>Loading...</span>
-                </Spinner>
+                <Spinner light small />
             }
             {
                 error && <span style={{color: 'red', fontSize: '0.8rem'}}>Error</span>

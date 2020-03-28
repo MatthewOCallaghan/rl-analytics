@@ -1,12 +1,24 @@
 import fetch from 'unfetch';
 
+import { getIdToken } from '../../firebase/firebase';
+
 import { getPlayerAndDispatch } from './players';
+import { getSessionData } from './session';
 
 export const GET_MATCHES = 'DISPLAY__GET_MATCHES';
 export const INVALID_CODE = 'DISPLAY__INVALID_CODE';
 export const GET_MATCHES_FAILURE = 'DISPLAY__GET_MATCHES_FAILURE';
 export const GET_PLAYER = 'DISPLAY__GET_PLAYER';
 export const LOADING_PLAYER_FAILURE = 'DISPLAY__LOADING_PLAYER_FAILURE';
+
+export const RECEIVED_INVITE = 'DISPLAY__RECEIVED_INVITE';
+
+export const ACCEPTED_INVITE = 'DISPLAY__REPLIED_TO_INVITE';
+export const REJECTED_INVITE = 'DISPLAY__REJECTED_INVITE';
+export const INVITE_REPLY_LOADING = 'DISPLAY_INVITE_REPLY_LOADING';
+export const INVITE_REPLY_FAILURE = 'DISPLAY__INVITE_REPLY_FAILURE';
+
+export const CLEAR_DISPLAY = 'DISPLAY__CLEAR_DISPLAY';
 
 export const getMatches = code => {
     return (dispatch, getState) => {
@@ -56,3 +68,63 @@ export const getMatches = code => {
         });
     }
 }
+
+export const checkInvites = code => {
+    return async dispatch => {
+        fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}/invites`, {
+            headers: {
+                authorization:  `Bearer ${await getIdToken()}`
+            }
+        })
+        .then(response => {
+            if(!response.ok) {
+                return Promise.reject(new Error(response.statusText));
+            }
+            return response;
+        })
+        .then(response => response.json())
+        .then(invite => {
+            if (invite.id) {
+                dispatch({ type: RECEIVED_INVITE, id: invite.id });
+            }
+        })
+        .catch(console.log);
+    }
+}
+
+export const replyToInvite = (response, code) => {
+    return async (dispatch, getState) => {
+        const state = getState();
+        dispatch({ type: INVITE_REPLY_LOADING, response });
+        fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}/invites/${state.display.invite.id}`, {
+            method: 'put',
+            headers: {
+                authorization: `Bearer ${await getIdToken()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                response
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                return Promise.reject(new Error(response.statusText));
+            }
+            return response.json();
+        })
+        .then(token => {
+            if (response === 'accept') {
+                dispatch({ type: ACCEPTED_INVITE, token, code });
+                dispatch(getSessionData());
+            } else {
+                dispatch({ type: RECEIVED_INVITE });
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            dispatch({ type: INVITE_REPLY_FAILURE });
+        });
+    }
+}
+
+export const clearDisplay = () => ({ type: CLEAR_DISPLAY });

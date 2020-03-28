@@ -30,3 +30,51 @@
 .team-input input:not(:first-child) {
     margin-top: 1rem;
 }
+
+#hosts-modal {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+#hosts-modal .hosts {
+    display: grid;
+    grid-template-columns: auto min-content;
+    grid-column-gap: 5%;
+    grid-row-gap: 5px;
+    align-items: center;
+    grid-auto-rows: 1fr;
+}
+
+#hosts-modal .status {
+    font-family: 'Bourgeois Book', monospace;
+    font-size: 120%;
+    border-style: solid;
+    border-width: 3px;
+    text-transform: capitalize;
+    border-radius: 5px;
+    padding: 2px 5px;
+    text-align: center;
+}
+
+#hosts-modal .status.host {
+    color: black;
+    border-color: black;
+}
+
+#hosts-modal .status.invited {
+    color: #7FFF00;
+    border-color: #7FFF00;
+}
+
+#hosts-modal .status.error {
+    color: red;
+    border-color: red;
+}
+
+#hosts-modal #invite {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    margin-top: 10px;
+}

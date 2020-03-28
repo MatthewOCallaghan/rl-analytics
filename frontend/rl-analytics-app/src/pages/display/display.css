@@ -18,3 +18,13 @@
 #invalid-code-message {
     color: red;
 }
+
+#hosts-modal p {
+    text-align: justify;
+}
+
+#hosts-modal #invite-buttons {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+}

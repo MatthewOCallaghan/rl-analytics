@@ -11,17 +11,21 @@ import Button from '../../components/button/Button';
 import TextBox from '../../components/textbox/TextBox';
 import DropdownList from '../../components/dropdown-list/DropdownList';
 import Box from '../../components/box/Box';
+import Modal from 'react-bootstrap/Modal';
+import Spinner from '../../components/spinner/Spinner';
 
 import './session.css';
 
 import { addMatch, finishMatch } from '../../redux/actions/matches';
-import { createSession, endSession, GAME_MODES } from '../../redux/actions/session';
+import { createSession, endSession, getSessionData, invite, GAME_MODES } from '../../redux/actions/session';
 
 const BASE_64_PREFIX = /^data:image\/\w+;base64,/;
 
 const Session = () => {
     const [view, setView] = useState('analytics'); //analytics, new
     const [awaitingSubmit, setAwaitingSubmit] = useState(false);
+
+    const [viewHosts, setViewHosts] = useState(false);
 
     const matches = useSelector(store => store.matches);
     const session = useSelector(store => store.session);
@@ -33,6 +37,16 @@ const Session = () => {
             dispatch(createSession());
         }
     }, [dispatch, session]);
+
+    useEffect(() => {
+        if(session.token) {
+            dispatch(getSessionData());
+            const interval = setInterval(() => {
+                dispatch(getSessionData());
+            }, 15000);
+            return () => clearInterval(interval);
+        }
+    }, [dispatch, session.token]);
 
     const submitNewMatch = (mode, players) => {
         players = players.map(teamPlayers => teamPlayers.filter(player => player !== ''));
@@ -89,20 +103,63 @@ const Session = () => {
 
     return (
         <Layout>
-            { session.loading && <LoadingSessionScreen /> }
-            { session.error && <ErrorSessionScreen back={() => dispatch(endSession())} /> }
-            { session.token && 
+            { session.loading && <LoadingSessionScreen newSession={!session.code} /> }
+            { session.error && !session.token && <ErrorSessionScreen back={() => dispatch(endSession())} /> }
+            { session.token && session.code && session.owners &&
                 (view === 'analytics'
-                    ?   <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText={matchesComplete ? 'Next match' : 'Match finished'} primaryButtonAction={matchesComplete ? () => setView('new') : () => dispatch(finishMatch(mostRecentMatch))} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} host />
+                    ?   <>
+                            <HostsModal show={viewHosts} onHide={() => setViewHosts(false)} owners={[ ...session.owners.map(email => ({ email, status: 'host' })), ...session.invited ]} submitInvite={email => dispatch(invite(email))}  />
+                            <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText={matchesComplete ? 'Next match' : 'Match finished'} primaryButtonAction={matchesComplete ? () => setView('new') : () => dispatch(finishMatch(mostRecentMatch))} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} host onOwnershipAction={() => setViewHosts(true)} errorAlert={session.error && session.token ? 'We are having trouble connecting to the session, but we will continue to try...' : false} />
+                        </>
                     :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatchWithUsernames={submitNewMatch} addMatchWithImage={submitImage} />)
             }
         </Layout>
     );
 }
 
-const LoadingSessionScreen = () => (
+const HostsModal = ({ owners, show, onHide, submitInvite }) => {
+    const [invitee, setInvitee] = useState('');
+
+    const whenHiding = () => {
+        setInvitee('');
+        onHide();
+    }
+
+    const onClick = () => {
+        submitInvite(invitee);
+        setInvitee('');
+    }
+    console.log(owners);
+    return (
+        <Modal show={show} onHide={() => whenHiding()} centered >
+            <div id='hosts-modal'>
+                <h1>Hosts</h1>
+                <div className='hosts'>
+                    {
+                        owners.map((host, index) => 
+                            <React.Fragment key={`Host:${host.email + host.status + index}`}>
+                                <span className='email'>{host.email}</span>
+                                {
+                                    host.status === 'loading'
+                                        ?   <span style={{textAlign: 'center'}}><Spinner small /></span>
+                                        :   <span className={`status ${host.status}`}>{host.status}</span>
+                                }
+                            </React.Fragment>    
+                        )
+                    }
+                </div>
+                <div id='invite'>
+                    <TextBox style={{border: 'solid 1px black'}} placeholder='Email' handleOnChange={setInvitee} value={invitee} type='email' />
+                    <Button colour='black' handleOnClick={() => onClick()} >Invite</Button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
+const LoadingSessionScreen = ({ newSession }) => (
     <div className='container-vertically-centre' >
-        <p>Creating session...</p>
+        <p>{newSession ? 'Creating' : 'Loading'} session...</p>
     </div>
 );
 

@@ -1,9 +1,11 @@
 import { GET_PLAYER, LOADING_PLAYER_FAILURE, ADD_MATCH, ADD_MATCH_FAILURE, LOADING_NEW_MATCH, EDIT_USERNAME, FINISH_MATCH, FINISH_MATCH_FAILURE, FINISH_MATCH_LOADING } from '../actions/matches';
-import { END_SESSION } from '../actions/session';
+import { END_SESSION, GET_SESSION_DATA } from '../actions/session';
 import { SIGN_OUT } from '../actions/user';
 
 const matches = (state = { matches: [], loading: false, error: false }, action) => {
     switch(action.type) {
+        case GET_SESSION_DATA:
+            return { ...state, matches: action.matches };
         case END_SESSION:
         case SIGN_OUT:
             return { matches: [], loading: false, error: false };

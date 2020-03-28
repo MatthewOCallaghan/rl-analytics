@@ -18,6 +18,24 @@ button {
     color: orange;
 }
 
+.button-green, button.button-green.button-ghost:hover:not(.button-disabled) {
+    background-color: lime;
+    border-color: lime;
+}
+
+.button-green:hover:not(.button-disabled):not(.button-ghost), .button-green.button-ghost:not(.button-disabled):not(:hover) {
+    color: lime;
+}
+
+.button-red, button.button-red.button-ghost:hover:not(.button-disabled) {
+    background-color: red;
+    border-color: red;
+}
+
+.button-red:hover:not(.button-disabled):not(.button-ghost), .button-red.button-ghost:not(.button-disabled):not(:hover) {
+    color: red;
+}
+
 .button-blue, button.button-blue.button-ghost:hover:not(.button-disabled) {
     background-color: blue;
     border-color: blue;

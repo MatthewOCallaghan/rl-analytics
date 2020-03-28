@@ -157,7 +157,7 @@ const processMatchResult = async match => {
                     }
 
                     // If any player has won all their games
-                    if(updates[t][i].wins === updates[t][i].games) {
+                    if(updates[t][i].wins === updates[t][i].games && updates[t][i].wins !== undefined) {
                         results[t] = results[t].map(player => ({ ...player, wins: 1 }));
                         results[1-t] = results[1-t].map(player => ({ ...player, wins: 0 }));
                         return results; 

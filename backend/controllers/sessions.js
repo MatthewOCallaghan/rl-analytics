@@ -101,10 +101,8 @@ const addSession = async (req, res, database) => {
 
         // Transaction
         await database.transaction(async trx => {
-            var session = await trx.insert({
-                                            code: newCode
-                                        }, '*')
-                                        .into('sessions');
+            var session = await trx.insert({ code: newCode }, '*')
+                                   .into('sessions');
             session = session[0];
             if(userId) {
                 await trx('session_owners').insert({
@@ -114,20 +112,22 @@ const addSession = async (req, res, database) => {
             }
 
             // Token
-            const token = await new Promise((resolve, reject) => {
-                jwt.sign({ id: session.id, code: session.code, startTime: session.start_time }, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, (err, token) => {
-                    if(err) {
-                        reject(new Error('Error creating token'));
-                    }
-                    resolve({
-                        token,
-                        code: session.code,
-                        startTime: session.start_time
-                    });                    
+            const token = await getSessionToken(session);
+
+            if (userId) {
+                const email = await new Promise((resolve, reject) => {
+                    admin.auth().getUser(userId)
+                        .then(user => resolve(user.email))
+                        .catch(err => {
+                            console.log(err);
+                            reject();
+                        });
                 });
-            })
-            
-            res.json(token);
+
+                res.json({ token, email, code: session.code, startTime: session.start_time });
+            } else {
+                res.json({ token, code: session.code, startTime: session.start_time });
+            }
         });
 
     } catch(error) {
@@ -135,6 +135,15 @@ const addSession = async (req, res, database) => {
         res.status(500).send(error);
     }
 }
+
+const getSessionToken = session => new Promise((resolve, reject) => {
+    jwt.sign({ id: session.id, code: session.code, startTime: session.start_time }, JWT_KEY, { issuer: JWT_ISSUER, audience: JWT_AUDIENCE }, (err, token) => {
+        if(err) {
+            reject(new Error('Error creating token'));
+        }
+        resolve(token);                    
+    });
+});
 
 const editUsername = (req, res, database) => {
     const sessionId = req.tokenData.id;
@@ -626,6 +635,152 @@ const getPlayerStats = (req, res, username, database) => {
         });
 }
 
+const createInvite = (req, res, sessionCode, database) => {
+    const id = req.tokenData.id;
+
+    database('sessions').select('code').where('id', '=', id).first()
+        .then(code => {
+            code = code.code;
+            if (code === sessionCode) {
+                database('invites').insert({ session_id: id, user_email: req.body.email }, '*')
+                    .then(invite => res.json(invite[0]))
+                    .catch(handleError(res))
+            } else {
+                res.sendStatus(403);
+            }
+        })
+        .catch(handleError(res))
+}
+
+const replyToInvite = (req, res, sessionCode, inviteId, database) => {
+
+    if(!INTEGER_REGEX.test(inviteId)) {
+        res.status(400).send('Invalid invite ID');
+        return;
+    }
+
+    if (req.body.response === 'accept' || req.body.response === 'reject') {
+        database.select('sessions.id')
+            .from('sessions').innerJoin('invites', 'invites.session_id', 'sessions.id')
+            .where('sessions.code', '=', sessionCode).andWhere('invites.id', '=', inviteId).andWhere('invites.user_email', '=', req.email)
+            .first()
+        .then(invite => {
+            if (invite) {
+
+                if (req.body.response === 'accept') {
+                    const sessionId = invite.id;
+
+                    database.transaction(trx => {
+                        return trx('invites').where('id', inviteId).del()
+                            .then(() => trx('session_owners').insert({ session_id: sessionId, user_id: req.id }))
+                            .then(() => trx('sessions').select('id', 'code', 'start_time').where('id', sessionId).first());
+                    })
+                    .then(session => {
+                        getSessionToken(session)
+                            .then(token => res.json(token))
+                            .catch(handleError(res));
+                    })
+                    .catch(handleError(res));
+                } else {
+                    database('invites').where('id', inviteId).del()
+                        .then(res.json({ id: inviteId }))
+                        .catch(handleError(res));
+                }
+            } else {
+                res.sendStatus(400);
+            }
+        })
+        .catch(handleError(res));
+    } else {
+        res.status(400).send('Invalid response');
+    }
+}
+
+const checkInvites = (req, res, sessionCode, database) => {
+    const userEmail = req.email;
+    
+    database.select('invites.id', 'user_email')
+            .from('invites').innerJoin('sessions', 'sessions.id', 'invites.session_id')
+            .where('user_email', userEmail).andWhere('code', sessionCode)
+            .first()
+        .then(invite => {
+            if (invite) {
+                res.json({ id: invite.id, email: invite.email });
+            } else {
+                res.json({});
+            }
+        })
+        .catch(handleError(res));
+}
+
+const handleGetSessionData = (req, res, code, database) => {
+    if (req.tokenData) {
+        getSessionData(req.tokenData.id, database)
+            .then(data => res.json(data))
+            .catch(handleError(res));
+    } else {
+        getMatches(req, res, code, database);
+    }
+}
+
+const getSessionData = (sessionId, database) => {
+    return new Promise((resolve, reject) => {
+        database.select('sessions.code', 'matches.id AS matchId', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp')
+                .from('sessions', 'matches', 'players')
+                .leftOuterJoin('matches', 'sessions.id', 'matches.session_id')
+                .leftOuterJoin('players', 'matches.id', 'players.match_id')
+                .where('sessions.id', sessionId)
+            .then(data => {
+                const matches = processMatches(data);
+
+                database('invites').select('user_email').where('session_id', sessionId)
+                    .then(data => {
+                        const invited = data.map(invite => invite.user_email);
+
+                        database('session_owners').select('user_id').where('session_id', sessionId)
+                            .then(data => {
+                                const ownerIds = data.map(owner => owner.user_id);
+
+                                const getUserEmail = id => new Promise((resolve, reject) => {
+                                    admin.auth().getUser(id)
+                                        .then(user => resolve(user.email))
+                                        .catch(err => {
+                                            console.log(err);
+                                            reject();
+                                        });
+                                })
+                                
+                                Promise.all(ownerIds.map(getUserEmail))
+                                    .then(emails => {
+                                        resolve({ matches, invited, owners: emails });
+                                    })
+                                    .catch(err => {
+                                        console.log(err);
+                                        reject();
+                                    })
+                            })
+                            .catch(err => {
+                                console.log(err);
+                                reject();
+                            });
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        reject()
+                    });
+            })
+            .catch(err => {
+                console.log(err);
+                reject();
+            });
+    });
+}
+
+const handleError = res => err => {
+    console.log(err);
+    res.sendStatus(500);
+}
+
 const checkValidSessionCode = (req, res, next) => {
     const code = req.params.code;
 
@@ -679,11 +834,20 @@ const verifyToken = (req, res, next) => {
     });
 }
 
+const verifyTokenIfExists = (req, res, next) => {
+    if (!req.token) {
+        next();
+    } else {
+        verifyToken(req, res, next);
+    }
+}
+
 const verifyFirebaseId = (req, res, next) => {
     admin.auth().verifyIdToken(req.token)
         .then(user => {
             req.id = user.uid;
             req.username = user.name;
+            req.email = user.email;
             next();
         })
         .catch(error => {
@@ -702,9 +866,14 @@ module.exports = {
     getMatchHistory,
     getPlayerAnalytics,
     getPlayerStats,
+    createInvite,
+    replyToInvite,
+    checkInvites,
+    handleGetSessionData,
     checkTokenExists,
     handleTokenIfExists,
     checkValidSessionCode,
     verifyToken,
+    verifyTokenIfExists,
     verifyFirebaseId
 }

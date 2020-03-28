@@ -35,7 +35,14 @@ const { getStats } = require('./controllers/scrape/stats');
 const { getSeasonRanks } = require('./controllers/scrape/ranks');
 const { getRatingDetail } = require('./controllers/scrape/mmr');
 const { getUpdates } = require('./controllers/scrape/updates');
-const { addSession, addMatch, getMatches, checkTokenExists, editUsername, finishMatch, submitResult, addSessionOwner, getMatchHistory, getPlayerAnalytics, getPlayerStats, handleTokenIfExists, checkValidSessionCode, verifyToken, verifyFirebaseId } = require('./controllers/sessions');
+const { 
+	addSession, addSessionOwner, handleGetSessionData,
+	addMatch, finishMatch, submitResult,
+	editUsername,
+	createInvite, replyToInvite, checkInvites,
+	getMatchHistory, getPlayerAnalytics, getPlayerStats,
+	checkTokenExists, handleTokenIfExists, checkValidSessionCode, verifyToken, verifyTokenIfExists, verifyFirebaseId
+} = require('./controllers/sessions');
 
 const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://localhost:3000'];
 
@@ -78,7 +85,13 @@ app.post('/sessions', handleTokenIfExists, async (req, res) => await addSession(
 
 app.post('/sessions/:code', checkTokenExists, checkValidSessionCode, verifyToken, async (req, res) => await addMatch(req, res, database));
 
-app.get('/sessions/:code', checkValidSessionCode, (req, res) => getMatches(req, res, req.params.code, database));
+app.get('/sessions/:code', checkValidSessionCode, handleTokenIfExists, verifyTokenIfExists, (req, res) => handleGetSessionData(req, res, req.params.code, database));
+
+app.post('/sessions/:code/invites', checkTokenExists, checkValidSessionCode, verifyToken, (req, res) => createInvite(req, res, req.params.code, database));
+
+app.get('/sessions/:code/invites', checkTokenExists, checkValidSessionCode, verifyFirebaseId, (req, res) => checkInvites(req, res, req.params.code, database));
+
+app.put('/sessions/:code/invites/:invite', checkTokenExists, checkValidSessionCode, verifyFirebaseId, (req, res) => replyToInvite(req, res, req.params.code, req.params.invite, database));
 
 app.get('/matches', checkTokenExists, verifyFirebaseId, (req, res) => getMatchHistory(req, res, database));
 

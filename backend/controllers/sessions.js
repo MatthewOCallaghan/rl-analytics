@@ -186,59 +186,73 @@ const editUsername = (req, res, database) => {
 const addMatch = async (req, res, database) => {
     const sessionId = req.tokenData.id;
 
-    if (!(req.body.mode && GAME_MODES.map(mode => mode.title).includes(req.body.mode))) {
-        res.status(400).send('Invalid mode');            
-    } else {
-        var players;
-        if (req.body.players) {
-            if(!(req.body.players && Array.isArray(req.body.players) && req.body.players.length === 2 && Array.isArray(req.body.players[0]) && Array.isArray(req.body.players[1]) && req.body.players[0].length === req.body.players[1].length && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === req.body.players[0].length && req.body.players[0].length <= 3 && req.body.players[0].length > 0 && req.body.players[0].concat(req.body.players[1]).every(player => player.name && (Object.entries(player).length === 1 || (player.platform && PLATFORMS.includes(player.platform)))))) {
-                res.status(400).send('Invalid players list');
-            } else {
-                players = req.body.players;
-            }
-        } else if (req.body.image) {
-            const teamSize = GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players;
-            players = (await extractUsernamesFromImage(req.body.image)).players.map(teamPlayers => teamPlayers.slice(0,teamSize).map(player => ({name: player})));
+    try {
+        if (!(req.body.mode && GAME_MODES.map(mode => mode.title).includes(req.body.mode))) {
+            res.status(400).send('Invalid mode');            
         } else {
-            res.status(400).send('Requires player list or scoreboard image');
+            var players;
+            if (req.body.players) {
+                if(!(req.body.players && Array.isArray(req.body.players) && req.body.players.length === 2 && Array.isArray(req.body.players[0]) && Array.isArray(req.body.players[1]) && req.body.players[0].length === req.body.players[1].length && GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players === req.body.players[0].length && req.body.players[0].length <= 3 && req.body.players[0].length > 0 && req.body.players[0].concat(req.body.players[1]).every(player => player.name && (Object.entries(player).length === 1 || (player.platform && PLATFORMS.includes(player.platform)))))) {
+                    res.status(400).send('Invalid players list');
+                } else {
+                    players = req.body.players;
+                }
+            } else if (req.body.image) {
+                const teamSize = GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players;
+                players = (await extractUsernamesFromImage(req.body.image)).players.map(teamPlayers => teamPlayers.slice(0,teamSize).map(player => ({name: player})));
+            } else {
+                res.status(400).send('Requires player list or scoreboard image');
+            }
+            if (players !== undefined) {
+                database.select('code').from('sessions').where('id', '=', sessionId).first()
+                    .then(code => {
+                        code = code.code;
+                        if (code === req.params.code) {
+
+                            // Check other matches in session are finished
+                            database.select('status')
+                                    .from('matches').innerJoin('sessions', 'sessions.id', 'matches.session_id')
+                                    .where('sessions.id', sessionId)
+                                    .orderBy('matches.start_time', 'desc')
+                                    .first()
+                                .then(status => {
+                                    if (status && status.status && status.status === 'playing') {
+                                        res.status(400).send('Cannot add match whilst there is still one in progress');
+                                    } else {
+
+                                        // Able to add match as authorised and no current match
+                                        database.transaction(trx => {
+                                            return trx.insert({
+                                                session_id: sessionId,
+                                                mode: req.body.mode
+                                            }, 'id')
+                                            .into('matches')
+                                            .then(matchId => {
+                                                matchId = matchId[0];
+                                                players = players.map((teamPlayers, index) => teamPlayers.map(player => ({...player, match_id: matchId, team: index})));
+                                                return trx.insert(players[0].concat(players[1])).into('players').returning('*');
+                                            });
+                                        })
+                                        .then(inserts => {
+                                            res.json({
+                                                players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform, id: player.id }); return acc; }, [[], []]),
+                                                mode: req.body.mode,
+                                                id: inserts[0].match_id
+                                            });
+                                        })
+                                        .catch(handleError(res));
+                                    }
+                                })
+                                .catch(handleError(res));
+                        } else {
+                            res.sendStatus(403);
+                        }
+                    })
+                    .catch(handleError(res));
+            }
         }
-        if (players !== undefined) {
-            database.select('code').from('sessions').where('id', '=', sessionId).first()
-                .then(code => {
-                    code = code.code;
-                    if (code === req.params.code) {
-                        database.transaction(trx => {
-                            return trx.insert({
-                                session_id: sessionId,
-                                mode: req.body.mode
-                            }, 'id')
-                            .into('matches')
-                            .then(matchId => {
-                                matchId = matchId[0];
-                                players = players.map((teamPlayers, index) => teamPlayers.map(player => ({...player, match_id: matchId, team: index})));
-                                return trx.insert(players[0].concat(players[1])).into('players').returning('*');
-                            });
-                        })
-                        .then(inserts => {
-                            res.json({
-                                players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform, id: player.id }); return acc; }, [[], []]),
-                                mode: req.body.mode,
-                                id: inserts[0].match_id
-                            });
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            res.sendStatus(500);
-                        });
-                    } else {
-                        res.sendStatus(403);
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                    res.sendStatus(500);
-                });
-        }
+    } catch (error) {
+        handleError(res)(error);
     }
 }
 
@@ -642,8 +656,21 @@ const createInvite = (req, res, sessionCode, database) => {
         .then(code => {
             code = code.code;
             if (code === sessionCode) {
-                database('invites').insert({ session_id: id, user_email: req.body.email }, '*')
-                    .then(invite => res.json(invite[0]))
+
+                database('session_owners').select('user_id').where('session_id', id)
+                    .then(ids => {
+                        Promise.all(ids.map(id => getUserEmail(id.user_id)))
+                            .then(emails => {
+                                if (emails.includes(req.body.email)) {
+                                    res.status(400).send('Email belongs to a host');
+                                } else {
+                                    database('invites').insert({ session_id: id, user_email: req.body.email }, '*')
+                                        .then(invite => res.json(invite[0]))
+                                        .catch(handleError(res))
+                                }
+                            })
+                            .catch(handleError(res));
+                    })
                     .catch(handleError(res))
             } else {
                 res.sendStatus(403);
@@ -723,6 +750,15 @@ const handleGetSessionData = (req, res, code, database) => {
     }
 }
 
+const getUserEmail = id => new Promise((resolve, reject) => {
+    admin.auth().getUser(id)
+        .then(user => resolve(user.email))
+        .catch(err => {
+            console.log(err);
+            reject();
+        });
+})
+
 const getSessionData = (sessionId, database) => {
     return new Promise((resolve, reject) => {
         database.select('sessions.code', 'matches.id AS matchId', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp')
@@ -740,15 +776,6 @@ const getSessionData = (sessionId, database) => {
                         database('session_owners').select('user_id').where('session_id', sessionId)
                             .then(data => {
                                 const ownerIds = data.map(owner => owner.user_id);
-
-                                const getUserEmail = id => new Promise((resolve, reject) => {
-                                    admin.auth().getUser(id)
-                                        .then(user => resolve(user.email))
-                                        .catch(err => {
-                                            console.log(err);
-                                            reject();
-                                        });
-                                })
                                 
                                 Promise.all(ownerIds.map(getUserEmail))
                                     .then(emails => {

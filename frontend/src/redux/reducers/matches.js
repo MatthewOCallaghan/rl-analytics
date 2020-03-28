@@ -20,7 +20,7 @@ const matches = (state = { matches: [], loading: false, error: false }, action) 
         case LOADING_PLAYER_FAILURE:
             return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, players: match.players.map((teamPlayers, index) => index === action.team ? teamPlayers.map(player => player.id === action.playerId && player.name === action.playerName ? { ...player, loading: false, error: true } : player): teamPlayers)} : match) };
         case EDIT_USERNAME:
-            return { ...state, matches: state.matches.map(match => match.id === action.match ? { ...match, players: match.players.map((teamPlayers, index) => index === action.team ? teamPlayers.map(player => player.id === action.player ? { id: player.id, name: action.newUsername, loading: true, error: false } : player): teamPlayers)} : match) };
+            return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, players: match.players.map((teamPlayers, index) => index === action.team ? teamPlayers.map(player => player.id === action.playerId ? { id: player.id, name: action.newUsername, loading: true, error: false } : player): teamPlayers)} : match) };
         case FINISH_MATCH:
             return { ...state, matches: state.matches.map(match => match.id === action.matchId ? { ...match, finished: { completed: true }, players: match.players.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ ...player, result: action.result[teamIndex][playerIndex] }))) } : match) };
         case FINISH_MATCH_LOADING:

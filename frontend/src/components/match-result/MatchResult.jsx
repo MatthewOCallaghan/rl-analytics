@@ -15,7 +15,7 @@ const MatchResult = ({ match, compact, noTitle }) => {
 
     return (
         <section className={compact ? 'match-result-compact' : undefined}>
-            { !noTitle && <h2>{match.finished.loading ? 'Calculating result...' : match.finished.error ? `Result: ${match.finished.error}` : 'Result'}</h2>}
+            { !noTitle && <h2>{match.finished.loading ? 'Calculating result...' : match.finished.error ? `Result: ${match.finished.error === true ? 'An error occurred' : match.finished.error}` : 'Result'}</h2>}
             { blanks && <p style={{fontStyle: 'italic'}}>Some stats are blank where they could not be determined</p> }
             <div className='match-result-team'>
                 { winner !== undefined && winner === 0 && <span className='winner' style={{color: 'blue'}}>Winner</span> }

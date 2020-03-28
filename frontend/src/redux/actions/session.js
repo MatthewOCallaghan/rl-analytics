@@ -110,6 +110,11 @@ export const getSessionData = () => {
                     return { ...player, loading: true, error: false };
                 }));
 
+                // Keep error message if possible
+                if (match.finished && match.finished.error && previousMatch && previousMatch.finished && previousMatch.finished.error) {
+                    match.finished.error = previousMatch.finished.error;
+                }
+
                 return match;
             });
 

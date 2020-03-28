@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import Layout from '../../components/layout/Layout';
 import AnalyticsScreen from '../../components/analytics-screen/AnalyticsScreen';
@@ -103,8 +103,8 @@ const Session = () => {
 
     return (
         <Layout>
-            { session.loading && <LoadingSessionScreen newSession={!session.code} /> }
-            { session.error && !session.token && <ErrorSessionScreen back={() => dispatch(endSession())} /> }
+            { session.loading && !session.error && <LoadingSessionScreen newSession={!session.token} /> }
+            { session.error && <ErrorSessionScreen back={() => dispatch(endSession())} newSession={!session.token} /> }
             { session.token && session.code && session.owners &&
                 (view === 'analytics'
                     ?   <>
@@ -129,7 +129,7 @@ const HostsModal = ({ owners, show, onHide, submitInvite }) => {
         submitInvite(invitee);
         setInvitee('');
     }
-    console.log(owners);
+    
     return (
         <Modal show={show} onHide={() => whenHiding()} centered >
             <div id='hosts-modal'>
@@ -150,7 +150,7 @@ const HostsModal = ({ owners, show, onHide, submitInvite }) => {
                 </div>
                 <div id='invite'>
                     <TextBox style={{border: 'solid 1px black'}} placeholder='Email' handleOnChange={setInvitee} value={invitee} type='email' />
-                    <Button colour='black' handleOnClick={() => onClick()} >Invite</Button>
+                    <Button colour='black' handleOnClick={() => onClick()} disabled={invitee.length === 0 || !owners.filter(host => host.status !== 'error').map(host => host.email).includes(invitee)} >Invite</Button>
                 </div>
             </div>
         </Modal>
@@ -163,21 +163,25 @@ const LoadingSessionScreen = ({ newSession }) => (
     </div>
 );
 
-const ErrorSessionScreen = ({ back }) => (
-    <Container className='session-container'>
-        <Row></Row>
-        <Row>
-            <Col xs={12}>
-                <h2 style={{color: 'red'}}>Sorry, there was an error creating the session...</h2>
-            </Col>
-        </Row>
-        <Row>
-            <Col xs={12} className='session-button-row'>
-                <Link to='/' style={{minWidth: '25%'}}><Button colour='black' style={{minWidth: '100%'}} ghost large handleOnClick={() => back()}>Back</Button></Link>
-            </Col>
-        </Row>
-    </Container>
-);
+const ErrorSessionScreen = ({ back, newSession }) => {
+    const location = useLocation();
+
+    return (
+        <Container className='session-container'>
+            <Row></Row>
+            <Row>
+                <Col xs={12}>
+                    <h2 style={{color: 'red'}}>{`Sorry, there was an error ${newSession ? 'creating' : 'loading'} the session...`}</h2>
+                </Col>
+            </Row>
+            <Row>
+                <Col xs={12} className='session-button-row'>
+                    <Link to={location.state ? location.state.from.pathname : '/'} style={{minWidth: '25%'}}><Button colour='black' style={{minWidth: '100%'}} ghost large handleOnClick={() => back()}>Back</Button></Link>
+                </Col>
+            </Row>
+        </Container>
+    );
+};
 
 const NewMatch = ({ addMatchWithUsernames, addMatchWithImage, navigateBack, loading, error }) => {
     const [fileUpload, setFileUpload] = useState("");

@@ -11,15 +11,21 @@ const session = (state = {}, action) => {
         case CREATE_SESSION_FAILURE:
             return { error: true };
         case GET_SESSION_DATA:
-            return { ...state, invited: action.invited.map(invite => ({ email: invite, status: 'invited' })), owners: action.owners, error: false, loading: false };
+            return {
+                ...state, 
+                invited: state.invited ? state.invited.filter(invite => invite.status === 'error' || invite.status === 'loading' || action.invited.includes(invite.email)).concat(action.invited.filter(email => state.invited.filter(invite => invite.email === email && invite.status === 'invited').length === 0).map(invite => ({ email: invite, status: 'invited' }))) : action.invited.map(email => ({ email, status: 'invited' })), 
+                owners: action.owners, 
+                error: false, 
+                loading: false 
+            };
         case GET_SESSION_FAILURE:
             return { ...state, error: true };
         case INVITED:
             return { ...state, invited: state.invited.map(invite => invite.email === action.email ? { email: action.email, status: 'invited'} : invite) };
         case INVITE_LOADING:
-            return { ...state, invited: state.invited.concat({ email: action.email, status: 'loading' }) };
+            return { ...state, invited: state.invited.filter(invite => invite.email !== action.email || invite.status !== 'error').concat({ email: action.email, status: 'loading' }) };
         case INVITE_FAILURE:
-            return { ...state, invited: state.invited.concat({ email: action.email, status: 'error' }) };
+            return { ...state, invited: state.invited.filter(invite => invite.email !== action.email || invite.status !== 'loading').concat({ email: action.email, status: 'error' }) };
         case ACCEPTED_INVITE:
             return { token: action.token, loading: true, code: action.code };
         case END_SESSION:

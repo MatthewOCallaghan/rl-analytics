@@ -39,7 +39,7 @@ const {
 	addSession, addSessionOwner, handleGetSessionData,
 	addMatch, finishMatch, submitResult,
 	editUsername,
-	createInvite, replyToInvite, checkInvites,
+	createInvite, replyToInvite, checkInvites, resumeOwnership,
 	getMatchHistory, getPlayerAnalytics, getPlayerStats,
 	checkTokenExists, handleTokenIfExists, checkValidSessionCode, verifyToken, verifyTokenIfExists, verifyFirebaseId
 } = require('./controllers/sessions');
@@ -92,6 +92,8 @@ app.post('/sessions/:code/invites', checkTokenExists, checkValidSessionCode, ver
 app.get('/sessions/:code/invites', checkTokenExists, checkValidSessionCode, verifyFirebaseId, (req, res) => checkInvites(req, res, req.params.code, database));
 
 app.put('/sessions/:code/invites/:invite', checkTokenExists, checkValidSessionCode, verifyFirebaseId, (req, res) => replyToInvite(req, res, req.params.code, req.params.invite, database));
+
+app.get('/sessions/:code/owner', checkTokenExists, checkValidSessionCode, verifyFirebaseId, (req, res) => resumeOwnership(req, res, req.params.code, database));
 
 app.get('/matches', checkTokenExists, verifyFirebaseId, (req, res) => getMatchHistory(req, res, database));
 

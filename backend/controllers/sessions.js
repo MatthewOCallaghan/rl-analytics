@@ -435,6 +435,7 @@ const processMatches = data => {
                 }
             }
         }
+
         matches[player.matchId].players[player.team].push(newPlayer);
     });
     return Object.values(matches).sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
@@ -740,6 +741,28 @@ const checkInvites = (req, res, sessionCode, database) => {
         .catch(handleError(res));
 }
 
+const resumeOwnership = (req, res, sessionCode, database) => {
+    const userId = req.id;
+
+    database.select('sessions.id', 'sessions.code', 'sessions.start_time')
+            .from('session_owners')
+            .innerJoin('sessions', 'sessions.id', 'session_owners.session_id')
+            .where('code', sessionCode).andWhere('user_id', userId)
+            .first()
+        .then(session => {
+            if (session) { // If they are an owner, give them the session token
+                getSessionToken(session)
+                    .then(token => {
+                        res.json({ token });
+                    })
+                    .catch(handleError(res));
+            } else { // Otherwise if they are not an owner, return nothing
+                res.json({});
+            }
+        })
+        .catch(handleError(res));
+}
+
 const handleGetSessionData = (req, res, code, database) => {
     if (req.tokenData) {
         getSessionData(req.tokenData.id, database)
@@ -762,11 +785,12 @@ const getUserEmail = id => new Promise((resolve, reject) => {
 const getSessionData = (sessionId, database) => {
     return new Promise((resolve, reject) => {
         database.select('sessions.code', 'matches.id AS matchId', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp')
-                .from('sessions', 'matches', 'players')
-                .leftOuterJoin('matches', 'sessions.id', 'matches.session_id')
-                .leftOuterJoin('players', 'matches.id', 'players.match_id')
+                .from('sessions')
+                .innerJoin('matches', 'sessions.id', 'matches.session_id')
+                .innerJoin('players', 'matches.id', 'players.match_id')
                 .where('sessions.id', sessionId)
             .then(data => {
+
                 const matches = processMatches(data);
 
                 database('invites').select('user_email').where('session_id', sessionId)
@@ -896,6 +920,7 @@ module.exports = {
     createInvite,
     replyToInvite,
     checkInvites,
+    resumeOwnership,
     handleGetSessionData,
     checkTokenExists,
     handleTokenIfExists,

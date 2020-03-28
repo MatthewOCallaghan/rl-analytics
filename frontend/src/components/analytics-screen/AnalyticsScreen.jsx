@@ -12,9 +12,8 @@ import FeaturedMatches from '../featured-matches/FeaturedMatches';
 
 import './AnalyticsScreen.css';
 
-const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction, host, onOwnershipAction }) => {
+const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primaryButtonAction, secondaryButtonText, secondaryButtonAction, host, onOwnershipAction, ownershipButtonText }) => {
     const lastMatch = matches[matches.length - 1];
-    
     const [historyAnalytics, setHistoryAnalytics] = useState(undefined);
 
     useEffect(() => {
@@ -43,7 +42,7 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
                 <Col xs={12}>
                     { errorAlert && <span id='analytics-screen-error-alert'>{errorAlert}</span>}
                     <h2>Session code: {code}</h2>
-                    { onOwnershipAction && <Button style={{position: 'absolute', right: 15, top: 0 }} colour={host ? 'black' : 'green'} handleOnClick={onOwnershipAction} >{host ? 'Hosts' : 'Invite pending'}</Button>}
+                    { onOwnershipAction && <Button style={{position: 'absolute', right: 15, top: 0 }} colour={host ? 'black' : 'green'} handleOnClick={onOwnershipAction} >{ownershipButtonText || (host ? 'Hosts' : 'Invite pending')}</Button>}
                     { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
                 </Col>
             </Row>

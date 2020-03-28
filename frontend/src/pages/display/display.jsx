@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Redirect, Link, useParams } from 'react-router-dom';
+import { Redirect, Link, useParams, useHistory } from 'react-router-dom';
 
 import Layout from '../../components/layout/Layout';
 import AnalyticsScreen from '../../components/analytics-screen/AnalyticsScreen';
@@ -10,7 +10,8 @@ import Modal from 'react-bootstrap/Modal';
 
 import './display.css';
 
-import { getMatches, checkInvites, replyToInvite, clearDisplay } from '../../redux/actions/display';
+import { getMatches, checkInvites, replyToInvite, clearDisplay, checkIfCanResumeOwnership } from '../../redux/actions/display';
+import { resumeOwnership } from '../../redux/actions/session';
 
 export const SESSION_CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 export const SESSION_CODE_LENGTH = 6;
@@ -24,6 +25,7 @@ export const isSessionCodeFormatValid = code => code.length === SESSION_CODE_LEN
 const Display = () => {
     const display = useSelector(store => store.display);
     const user = useSelector(store => store.user);
+    const history = useHistory();
     
     const { code } = useParams();
     const dispatch = useDispatch();
@@ -44,6 +46,7 @@ const Display = () => {
             dispatch(getMatches(code));
             if (user.profile) {
                 dispatch(checkInvites(code));
+                dispatch(checkIfCanResumeOwnership(code));
             }
             const interval = setInterval(() => {
                 dispatch(getMatches(code));
@@ -55,6 +58,13 @@ const Display = () => {
         }
     }, [dispatch, code, invalidCode, user.profile]);
 
+    const onResumeOwnership = () => {
+        if (display.resumeOwnershipToken) {
+            dispatch(resumeOwnership(display.resumeOwnershipToken, code));
+            history.push('/session');
+         }
+    }
+
     return (
         <>
             { display.acceptedInvite && <Redirect to='/session' /> }
@@ -63,7 +73,7 @@ const Display = () => {
                 {
                     code === undefined || invalidCode
                         ?   <CodePrompt invalidCode={display.invalidCode} />
-                        :   <AnalyticsScreen onOwnershipAction={display.invite ? () => setViewInvite(true) : undefined} errorAlert={display.error ? 'We are having trouble connecting to the session, but we will continue to try...' : false} code={code} matches={display.matches} secondaryButtonText='Quit' />
+                        :   <AnalyticsScreen onOwnershipAction={display.resumeOwnershipToken ? () => onResumeOwnership() : display.invite ? () => setViewInvite(true) : undefined} ownershipButtonText={display.resumeOwnershipToken && 'Resume hosting'} errorAlert={display.error ? 'We are having trouble connecting to the session, but we will continue to try...' : false} code={code} matches={display.matches} secondaryButtonText='Quit' />
                 }
             </Layout>
         </>

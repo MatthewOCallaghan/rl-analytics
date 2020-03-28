@@ -1,4 +1,9 @@
-import { CREATE_SESSION, LOADING_SESSION, CREATE_SESSION_FAILURE, END_SESSION, GET_SESSION_DATA, GET_SESSION_FAILURE, INVITED, INVITE_LOADING, INVITE_FAILURE } from '../actions/session';
+import {
+    CREATE_SESSION, LOADING_SESSION, CREATE_SESSION_FAILURE, END_SESSION,
+    GET_SESSION_DATA, GET_SESSION_FAILURE,
+    INVITED, INVITE_LOADING, INVITE_FAILURE,
+    RESUME_OWNERSHIP
+} from '../actions/session';
 import { SIGN_OUT } from '../actions/user';
 import { ACCEPTED_INVITE } from '../actions/display';
 
@@ -27,6 +32,8 @@ const session = (state = {}, action) => {
         case INVITE_FAILURE:
             return { ...state, invited: state.invited.filter(invite => invite.email !== action.email || invite.status !== 'loading').concat({ email: action.email, status: 'error' }) };
         case ACCEPTED_INVITE:
+            return { token: action.token, loading: true, code: action.code };
+        case RESUME_OWNERSHIP:
             return { token: action.token, loading: true, code: action.code };
         case END_SESSION:
         case SIGN_OUT:

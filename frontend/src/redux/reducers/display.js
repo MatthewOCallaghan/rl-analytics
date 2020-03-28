@@ -1,4 +1,11 @@
-import { GET_MATCHES, GET_MATCHES_FAILURE, INVALID_CODE, GET_PLAYER, LOADING_PLAYER_FAILURE, RECEIVED_INVITE, ACCEPTED_INVITE, REJECTED_INVITE, INVITE_REPLY_LOADING, INVITE_REPLY_FAILURE, CLEAR_DISPLAY } from '../actions/display';
+import { 
+    GET_MATCHES, GET_MATCHES_FAILURE,
+    INVALID_CODE,
+    GET_PLAYER, LOADING_PLAYER_FAILURE,
+    RECEIVED_INVITE, ACCEPTED_INVITE, REJECTED_INVITE, INVITE_REPLY_LOADING, INVITE_REPLY_FAILURE,
+    RESUME_OWNERSHIP_TOKEN,
+    CLEAR_DISPLAY
+} from '../actions/display';
 
 const INITIAL_STATE = {
     matches: [], 
@@ -29,6 +36,8 @@ const display = (state = INITIAL_STATE, action) => {
             return { ...state, invite: { id: state.invite.id, loading: true, response: action.response } };
         case INVITE_REPLY_FAILURE:
             return { ...state, invite: { id: state.invite.id, error: true } };
+        case RESUME_OWNERSHIP_TOKEN:
+            return { ...state, resumeOwnershipToken: action.token };
         case CLEAR_DISPLAY:
             return INITIAL_STATE;
         default:

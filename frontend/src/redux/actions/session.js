@@ -18,6 +18,8 @@ export const INVITE_LOADING = 'SESSION__INVITE_LOADING';
 export const INVITED = 'SESSION__INVITED';
 export const INVITE_FAILURE = 'SESSION__INVITE_FAILURE';
 
+export const RESUME_OWNERSHIP = 'SESSION__RESUME_OWNERSHIP';
+
 export const createSession = () => {
     return async (dispatch, getState) => {
         dispatch({ type: LOADING_SESSION });
@@ -154,6 +156,8 @@ export const invite = (email) => {
         });
     }
 }
+
+export const resumeOwnership = (token, code) => ({ type: RESUME_OWNERSHIP, token, code });
 
 export const GAME_MODES = [
     {

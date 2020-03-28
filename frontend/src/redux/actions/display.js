@@ -20,6 +20,8 @@ export const INVITE_REPLY_FAILURE = 'DISPLAY__INVITE_REPLY_FAILURE';
 
 export const CLEAR_DISPLAY = 'DISPLAY__CLEAR_DISPLAY';
 
+export const RESUME_OWNERSHIP_TOKEN = 'DISPLAY__RESUME_OWNERSHIP_TOKEN';
+
 export const getMatches = code => {
     return (dispatch, getState) => {
         fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}`)
@@ -124,6 +126,29 @@ export const replyToInvite = (response, code) => {
             console.log(err);
             dispatch({ type: INVITE_REPLY_FAILURE });
         });
+    }
+}
+
+export const checkIfCanResumeOwnership = code => {
+    return async dispatch => {
+        fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}/owner`, {
+            headers: {
+                authorization:  `Bearer ${await getIdToken()}`
+            }
+        })
+        .then(response => {
+            if(!response.ok) {
+                return Promise.reject(new Error(response.statusText));
+            }
+            return response;
+        })
+        .then(response => response.json())
+        .then(response => {
+            if (response.token) {
+                dispatch({ type: RESUME_OWNERSHIP_TOKEN, token: response.token });
+            }
+        })
+        .catch(console.log);
     }
 }
 

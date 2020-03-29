@@ -37,7 +37,7 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
 
     return (
         <Container className='session-container' fluid>
-            <Row>
+            {/* <Row>
 
                 <Col xs={12}>
                     { errorAlert && <span id='analytics-screen-error-alert'>{errorAlert}</span>}
@@ -45,7 +45,22 @@ const AnalyticsScreen = ({ errorAlert, matches, code, primaryButtonText, primary
                     { onOwnershipAction && <Button style={{position: 'absolute', right: 15, top: 0 }} colour={host ? 'black' : 'green'} handleOnClick={onOwnershipAction} >{ownershipButtonText || (host ? 'Hosts' : 'Invite pending')}</Button>}
                     { matches.length > 0 && <h3>{matches[matches.length - 1].mode}</h3> }
                 </Col>
+            </Row> */}
+
+            { errorAlert && <Row><Col xs={12}><span id='analytics-screen-error-alert'>{errorAlert}</span></Col></Row>}
+            <Row>
+                {
+                    onOwnershipAction
+                        ?   <>
+                                <Col xs={12} sm={8}><h2>Session code: {code}</h2></Col>
+                                <Col xs={12} sm={4} id='ownership-button-container'><Button colour={host ? 'black' : 'green'} handleOnClick={onOwnershipAction} >{ownershipButtonText || (host ? 'Hosts' : 'Invite pending')}</Button></Col>
+                            </>
+                        :   <Col xs={12}><h2>Session code: {code}</h2></Col>
+                }
             </Row>
+            { matches.length > 0 && <Row><Col xs={12}><h3>{matches[matches.length - 1].mode}</h3></Col></Row> }
+            
+
             {
                 matches.length === 0
                     ?   <Row><Col xs={12}><p>No matches played yet...</p></Col></Row>

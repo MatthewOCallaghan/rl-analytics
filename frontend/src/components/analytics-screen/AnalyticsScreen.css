@@ -1,3 +1,16 @@
 #analytics-screen-error-alert {
     color: red;
 }
+
+/* #ownership-button-container {
+
+} */
+
+@media only screen and (min-width: 576px) {
+    
+    #ownership-button-container {
+        text-align: right;
+    }
+
+}
+

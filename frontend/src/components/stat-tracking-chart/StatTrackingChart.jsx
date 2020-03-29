@@ -2,17 +2,7 @@ import React from 'react';
 
 import { Line } from 'react-chartjs-2'; 
 
-const COLOURS = [
-    ['#0000FF', '#87CEFA'],
-    ['#964000', '#FFA500'],
-    ['#006400', '#7CFC00'],
-    ['#4B0082', '#9932CC'],
-    ['#FFFF00', '#FFFFE0'],
-    ['#8B4513', '#A0522D'],
-    ['#FF1493', '#FFC0CB']
-];
-
-// data should be in form [{ name: *player username*, data: [{ date: *date*, games: *number of games*, stat: *value of stat* }]}]
+// data should be in form [{ name: *player username*, colours: [*dark colour*, *light colour*], data: [{ date: *date*, games: *number of games*, stat: *value of stat* }]}]
 const StatTrackingChart = ({ data, statName }) => {
 
     const labels = [];
@@ -24,7 +14,7 @@ const StatTrackingChart = ({ data, statName }) => {
     labels.sort((a,b) => new Date(a) - new Date(b));
 
     const datasets = [];
-    data.forEach((playerData, index) => {
+    data.forEach(playerData => {
         // var i = 0;
         const data = playerData.data.length === 0
                         ?   []
@@ -39,7 +29,7 @@ const StatTrackingChart = ({ data, statName }) => {
         const gamesDataset = {
             data: data.map(datum => datum.games),
             label: `${playerData.name} - Games`,
-            borderColor: COLOURS[index][0],
+            borderColor: playerData.colours[0],
             fill: false,
             lineTension: 0,
             // pointRadius: 0
@@ -48,7 +38,7 @@ const StatTrackingChart = ({ data, statName }) => {
         const statDataset = {
             data: data.map(datum => datum.stat),
             label: `${playerData.name} - ${statName}`,
-            borderColor: COLOURS[index][1],
+            borderColor: playerData.colours[1],
             fill: false,
             lineTension: 0,
             // pointRadius: 0

@@ -15,7 +15,9 @@ import Spinner from 'react-bootstrap/Spinner';
 import RemoveIcon from '@material-ui/icons/ClearRounded';
 import TextBox from '../../components/textbox/TextBox';
 import Button from '../../components/button/Button';
-import { useAccordionToggle } from'react-bootstrap/AccordionToggle';
+import { useAccordionToggle } from 'react-bootstrap/AccordionToggle';
+
+import { COLOURS } from '../../redux/reducers/tracking';
 
 import './Tracking.css';
 
@@ -63,11 +65,12 @@ const Tracking = () => {
         }
     }, [user.username, dispatch]);
 
-    const data = players.filter(player => player.data).map(({username, data, modes}) => {
+    const data = players.filter(player => player.data).map(({ username, data, modes, colours }) => {
         const selectedModes = Object.entries(modes).filter(([mode, show]) => show).map(([mode, show]) => mode);
 
         return { 
             name: username, 
+            colours,
             data: data.map(datum => ({ ...datum, modes: datum.modes.filter(mode => selectedModes.includes(mode.title)) })) // Remove unselected modes
                       .filter(datum => datum.modes.length > 0) // Remove points with no data left
                       .map(datum => ({ date: datum.date, games: datum.modes.reduce((acc, mode) => stat === 'wins' ? acc + mode.games : acc + mode[stat].games, 0), stat: datum.modes.reduce((acc, mode) => stat === 'wins' ? acc + mode.wins : acc + mode[stat].value, 0) }))
@@ -89,21 +92,26 @@ const Tracking = () => {
             <Container fluid>
                 <Row>
                     <Col xs={12} md={12} lg={4} xl={3} id='tracking-options-panel'>
-                        <div id='new-username'>
-                            <TextBox style={{border: 'solid black 1px'}} placeholder='Add username' handleOnChange={setNewUsername} value={newUsername} />
-                            <Button colour='black' handleOnClick={addUser} disabled={!newUsername.length}>Add</Button>
-                        </div>
+
+                        {
+                            players.length >= COLOURS.length
+                                ?   <p>Max players reached</p>
+                                :   <div id='new-username'>
+                                        <TextBox style={{border: 'solid black 1px'}} placeholder='Add username' handleOnChange={setNewUsername} value={newUsername} />
+                                        <Button colour='black' handleOnClick={addUser} disabled={!newUsername.length || players.length >= COLOURS.length || players.map(player => player.username).includes(newUsername)}>Add</Button>
+                                    </div>
+                        }
                         
                         <DropdownList options={STATS} handleOnChange={setStat} value={stat} />
                         <small>Click a username for more options</small>
                         <Accordion>
                             {
-                                players.map(({ username, data, modes, error, loading }, index) => 
+                                players.map(({ username, data, modes, error, loading, colours }, index) => 
                                     <Card key={`TrackingOptions:${username + index}`} id={`tracking-options-card-${index}`}>
                                         {
                                             data && modes
                                                 ?   <>
-                                                        <Card.Header>
+                                                        <Card.Header style={{backgroundColor: colours[1]}}>
                                                             <CustomToggle eventKey={index}>{username}</CustomToggle>
                                                             <Remove username={username} />
                                                         </Card.Header>
@@ -120,7 +128,7 @@ const Tracking = () => {
                                                             </Card.Body>
                                                         </Accordion.Collapse>
                                                     </>
-                                                :   <Card.Header className='card-header-no-data' style={error ? {color: 'red'} : undefined}>
+                                                :   <Card.Header className='card-header-no-data' style={{ backgroundColor: colours[1], color: error ? 'red' : undefined }}>
                                                         <span>{username}</span>
                                                         {
                                                             loading &&

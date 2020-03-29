@@ -38,34 +38,6 @@
     margin-bottom: 0;
 }
 
-#tracking-options-panel #tracking-options-card-0 .card-header {
-    background-color: #87CEFA;
-}
-
-#tracking-options-panel #tracking-options-card-1 .card-header {
-    background-color: #FFA500;
-}
-
-#tracking-options-panel #tracking-options-card-2 .card-header {
-    background-color: #7CFC00;
-}
-
-#tracking-options-panel #tracking-options-card-3 .card-header {
-    background-color: #9932CC;
-}
-
-#tracking-options-panel #tracking-options-card-4 .card-header {
-    background-color: #FFFFE0;
-}
-
-#tracking-options-panel #tracking-options-card-5 .card-header {
-    background-color: #A0522D;
-}
-
-#tracking-options-panel #tracking-options-card-6 .card-header {
-    background-color: #FFC0CB;
-}
-
 #tracking-options-panel .card-body {
     display: grid;
     grid-template-columns: auto auto;

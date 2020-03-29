@@ -17,11 +17,11 @@ const tracking = (state=INITIAL_STATE, action) => {
         case MATCH_HISTORY_FAILURE:
             return { ...state, matchHistory: { error: true } };
         case GET_PLAYER_STATS:
-            return { ...state, players: state.players.filter(player => player.username !== action.username).concat({ username: action.username, data: action.data, modes: GAME_MODES.reduce((acc, mode) => ({ ...acc, [mode.title]: true }), {}) }) };
+            return { ...state, players: processPlayers(state.players, action.username, player => ({ username: player.username, data: action.data, colours: player.colours, modes: GAME_MODES.reduce((acc, mode) => ({ ...acc, [mode.title]: true }), {}) }), { username: action.username, data: action.data, modes: GAME_MODES.reduce((acc, mode) => ({ ...acc, [mode.title]: true }), {}), colours: nextColour(state.players) }) };
         case LOADING_PLAYER_STATS:
-            return { ...state, players: state.players.filter(player => player.username !== action.username).concat({ username: action.username, loading: true }) };
+            return { ...state, players: processPlayers(state.players, action.username, player => ({ username: player.username, loading: true, colours: player.colours }), { username: action.username, loading: true, colours: nextColour(state.players) }) };
         case PLAYER_STATS_FAILURE:
-            return { ...state, players: state.players.filter(player => player.username !== action.username).concat({ username: action.username, error: true }) };
+            return { ...state, players: processPlayers(state.players, action.username, player => ({ username: player.username, colours: player.colours, error: true }), { username: action.username, error: true, colours: nextColour(state.players) }) };
         case CHANGE_MODE_VIEW:
             return { ...state, players: state.players.map(player => player.username !== action.username ? player : { ...player, modes: { ...player.modes, [action.mode]: action.show } }) };
         case REMOVE_PLAYER_TRACKING:
@@ -33,6 +33,24 @@ const tracking = (state=INITIAL_STATE, action) => {
     }
 }
 
-// const STATS = ['goals', 'assists', 'saves', 'shots', 'mvps']
+const nextColour = players => {
+    const usedColours = players.map(player => player.colours[0]);
+    return COLOURS.filter(colour => !usedColours.includes(colour[0]))[0];
+}
+
+const processPlayers = (currentPlayers, username, mapFuncIfExists, newObjIfNotExists) => {
+    const alreadyIncluded = currentPlayers.filter(player => player.username === username).length > 0;
+    return alreadyIncluded ? currentPlayers.map(player => player.username === username ? mapFuncIfExists(player) : player) : currentPlayers.concat(newObjIfNotExists);
+}
+
+export const COLOURS = [
+    ['#0000FF', '#87CEFA'],
+    ['#964000', '#FFA500'],
+    ['#006400', '#7CFC00'],
+    ['#4B0082', '#9932CC'],
+    ['#FFFF00', '#FFFFE0'],
+    ['#8B4513', '#A0522D'],
+    ['#FF1493', '#FFC0CB']
+];
 
 export default tracking;

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter, Switch, Route, Redirect } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
@@ -15,12 +15,10 @@ import MatchHistory from './pages/match-history/MatchHistory';
 import Tracking from './pages/tracking/Tracking';
 import NotFound from './pages/404/404';
 
-function App() {
+const App = () => {
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    ifUserSignedIn(user => dispatch(storeUserDetails(user.email, user.displayName)));
-  }, [dispatch]);
+  ifUserSignedIn(user => dispatch(storeUserDetails(user.email, user.displayName)));
 
   return (
     <BrowserRouter>

@@ -142,7 +142,7 @@ const processMatchResult = async match => {
             acc[index < updates.length / 2 ? 0 : 1].push(update);
             return acc;
         }, [[],[]]);
-        var results = updates.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ id: player.id, rank: player.rank || match.players[teamIndex][playerIndex].rank, division: player.division || match.players[teamIndex][playerIndex].division, mmrChange: player.mmrChange })));
+        var results = updates.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ id: player.id, rank: player.rank || match.players[teamIndex][playerIndex].rank, division: player.division || match.players[teamIndex][playerIndex].division, mmrChange: player.games === 1 ? player.mmrChange : undefined })));
         console.log(`Updates retrieved`);
         // Determine who won
         const determineWins = (results, updates) => {

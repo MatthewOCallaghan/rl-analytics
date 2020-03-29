@@ -111,10 +111,10 @@ const Tracking = () => {
                                                             <Card.Body>
                                                                 {
                                                                     Object.entries(modes).map(([title, show], index) => 
-                                                                        <>
+                                                                        <React.Fragment key={`${username}${title}${index}`} >
                                                                             <label htmlFor={`${username}-${title}`} key={`TrackingOptionsLabel${index}`}>{title}</label>
                                                                             <input type='checkbox' name={`${username}-${title}`} checked={show} onChange={event => dispatch(changeModeView(username, title, event.target.checked))} key={`TrackingOptionsCheckbox${index}`} />
-                                                                        </>
+                                                                        </React.Fragment>
                                                                     )
                                                                 }
                                                             </Card.Body>

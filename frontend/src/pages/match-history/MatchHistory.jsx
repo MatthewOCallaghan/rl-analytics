@@ -72,7 +72,7 @@ const Match = ({ match, user, setView }) => {
     
     match.startTime = new Date(match.startTime);
 
-    const playerItem = player => <span style={player.name === user ? { textDecoration: 'underline' } : undefined} key={`player:${player}`}>{player.name}</span>;
+    const playerItem = (player, index) => <span style={player.name === user ? { textDecoration: 'underline' } : undefined} key={`player:${player.name}${index}`}>{player.name}</span>;
 
     return (
         <section className={`match-history${match.finished ? ' hover' : ''}`} onClick={match.finished ? () => setView() : undefined}>

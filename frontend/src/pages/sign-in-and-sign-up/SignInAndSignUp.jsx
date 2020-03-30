@@ -25,9 +25,9 @@ const SignInAndSignUp = () => {
                 status.profile
                     ?   <Redirect to={location.state ? location.state.from.pathname : '/'} />
                     :   <div id='sign-in-and-sign-up-container'>
-                            <div style={{position: 'absolute', top: 20}}><Logo /></div>
+                            <Logo />
                             <Particles />
-                            <Container>
+                            <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'center' }} >
                                 <Row>
                                     <Col xs={12} md={6}>
                                         <SignIn />

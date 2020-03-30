@@ -65,7 +65,7 @@ const GAME_MODES = [
 ];
 
 admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
+    credential: process.env.NODE_ENV === 'production' ? admin.credential.cert({ projectId: process.env.FIREBASE_PROJECT_ID, clientEmail: process.env.FIREBASE_CLIENT_EMAIL, privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g,'\n') }) : admin.credential.applicationDefault(),
     databaseURL: "https://rl-analytics-auth.firebaseio.com"
 });
 

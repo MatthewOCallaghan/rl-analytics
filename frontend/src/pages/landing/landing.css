@@ -2,10 +2,8 @@
     color: white;
     min-height: 100vh;
     padding: 0 5%;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: space-around;
-    align-items: center;
+    display: grid;
+    grid-template-rows: min-content auto;
 }
 
 .landing-title-rl {

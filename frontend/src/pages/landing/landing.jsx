@@ -26,9 +26,9 @@ const Landing = () => {
             {/* <span style={{position: 'absolute', top: 20, right: '5%'}}>
                 <SignInSignOut fullSignOut />
             </span> */}
-            <div style={{position: 'absolute', top: 10, width: '100%' }}><Navbar landing /></div>
+            <div style={{ width: '100%' }}><Navbar landing /></div>
             <Particles />
-            <Container>
+            <Container style={{display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <Row>
                     <Col style={{margin: 'auto 0'}} md={12} lg={6}>
                         <div className='landing-title-rl'>

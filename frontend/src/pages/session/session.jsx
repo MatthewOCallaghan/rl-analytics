@@ -72,23 +72,6 @@ const Session = () => {
     const submitImage = (mode, image) => {
         dispatch(addMatch({mode, image}));
         setAwaitingSubmit(true);
-        // fetch(`${process.env.REACT_APP_API_URL}/extract`, {
-        //     method: 'POST',
-        //     headers: {
-        //         "Content-Type": "application/json"
-        //     },
-        //     body: JSON.stringify({
-        //         image: base64
-        //     })
-        // })
-        //     .then(response => response.json())
-        //     .then(response => response.players)
-        //     .then(teams => {
-        //         const updatedPlayers = players.map((team, teamIndex) => team.map((player, playerIndex) => teams[teamIndex][playerIndex] || player));
-        //         setPlayers(updatedPlayers);
-        //         updateMode(updatedPlayers);
-        //     })
-        //     .catch(console.log);
     }
 
     if(awaitingSubmit && !matches.loading) {
@@ -104,7 +87,7 @@ const Session = () => {
     return (
         <Layout>
             { session.loading && !session.error && <LoadingSessionScreen newSession={!session.token} /> }
-            { session.error && <ErrorSessionScreen back={() => dispatch(endSession())} newSession={!session.token} /> }
+            { session.error && !session.owners && <ErrorSessionScreen back={() => dispatch(endSession())} newSession={!session.token} /> }
             { session.token && session.code && session.owners &&
                 (view === 'analytics'
                     ?   <>
@@ -138,7 +121,7 @@ const HostsModal = ({ owners, show, onHide, submitInvite }) => {
                     {
                         owners.map((host, index) => 
                             <React.Fragment key={`Host:${host.email + host.status + index}`}>
-                                <span className='email'>{host.email}</span>
+                                <span className='email' style={{ wordWrap: 'break-word', overflow: 'hidden' }}>{host.email}</span>
                                 {
                                     host.status === 'loading'
                                         ?   <span style={{textAlign: 'center'}}><Spinner small /></span>
@@ -149,7 +132,7 @@ const HostsModal = ({ owners, show, onHide, submitInvite }) => {
                     }
                 </div>
                 <div id='invite'>
-                    <TextBox style={{border: 'solid 1px black'}} placeholder='Email' handleOnChange={setInvitee} value={invitee} type='email' />
+                    <TextBox style={{border: 'solid 1px black', maxWidth: '100%' }} placeholder='Email' handleOnChange={setInvitee} value={invitee} type='email' />
                     <Button colour='black' handleOnClick={() => onClick()} disabled={invitee.length === 0 || !owners.filter(host => host.status !== 'error').map(host => host.email).includes(invitee)} >Invite</Button>
                 </div>
             </div>

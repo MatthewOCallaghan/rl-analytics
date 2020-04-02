@@ -13,6 +13,12 @@ export const getPlayerAndDispatch = (successType, errorType, matchId, team, play
 
 export const getPlayer = (mode, player, platform) => {
     return new Promise((resolve, reject) => {
+
+        // Handle empty names (where player was added through image recogntion but could not identify name)
+        if (player.length === 0) {
+            reject("Name unknown");
+        }
+
         fetch(`${process.env.REACT_APP_API_URL}/profile/${player}${platform ? `?platform=${platform}` : ''}`)
             .then(response => {
                 if (!response.ok) {
@@ -90,10 +96,16 @@ export const getPlayerUpdate = async (player, mode) => {
 
         const fetchPlayerOnInterval = () => new Promise((resolve, reject) => {
             const interval = setInterval(async () => {
+                var count = 0;
                 const finalPlayer = await fetchPlayer();
+                count++;
                 if (updated(finalPlayer)) {
                     clearInterval(interval);
                     resolve(finalPlayer);
+                }
+                if(count === 5) {
+                    clearInterval(interval);
+                    resolve(false);
                 }
                 console.log(`${player.name} not updated yet`);
             }, 90000);
@@ -103,6 +115,11 @@ export const getPlayerUpdate = async (player, mode) => {
         console.log(`${player.name}: ${updated(finalPlayer)}`);
         if(!updated(finalPlayer)) {
             finalPlayer = await fetchPlayerOnInterval();
+            if (!finalPlayer) { // Timed out
+                return {
+                    id: player.id
+                };
+            }
         }
 
 

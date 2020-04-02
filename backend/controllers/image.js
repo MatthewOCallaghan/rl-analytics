@@ -8,7 +8,7 @@
 const vision = require('@google-cloud/vision');
 
 const KEYWORDS = ['COMPETITIVE', 'SCORE', 'GOALS', 'ASSISTS', 'SAVES', 'SHOTS', 'PING', 'SCORED', 'BY', 'YOU'];                                                                                                                                                                                                               // From OG PLAYER, as OG can get lost if deemed to start before team name
-const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', 'ALL-STAR', 'SUPERSTAR', 'AIRHEAD', 'ANIMATOR', 'DEVELOPER', 'MODERATOR', 'BALLISTIC', 'FLOATER', 'GOALTENDER', 'LEADFOOT', 'RECKLESS', 'SHERPA', 'SHOWBOAT', 'SKYLORD', 'STEAMROLLER', 'TRAILBLAZER', 'WALL-CRAWLER', 'WHEELER', 'DEMOGORGON', 'COUCH-POTATO', 'COMMITTED', 'JUGGLER', 'PLAYER'];
+const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', 'ALL-STAR', 'SUPERSTAR', 'AIRHEAD', 'ANIMATOR', 'DEVELOPER', 'MODERATOR', 'BALLISTIC', 'FLOATER', 'GOALTENDER', 'LEADFOOT', 'RECKLESS', 'SHERPA', 'SHOWBOAT', 'SKYLORD', 'STEAMROLLER', 'SOLOIST', 'TRAILBLAZER', 'TECHNICIAN', 'WALL-CRAWLER', 'WHEELER', 'DEMOGORGON', 'COUCH-POTATO', 'COMMITTED', 'JUGGLER', 'PLAYER'];
 const TEAM_ABBREVIATION = /[\[\(][A-Z0-9\*]{1,4}[\]\)]$/; // Just matches end of word rather than whole word in case avatar text gets merged in
 
 const handleExtractUsernames = async (req, res) => {

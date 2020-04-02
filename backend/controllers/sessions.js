@@ -199,7 +199,7 @@ const addMatch = async (req, res, database) => {
                 }
             } else if (req.body.image) {
                 const teamSize = GAME_MODES.filter(mode => mode.title === req.body.mode)[0].players;
-                players = (await extractUsernamesFromImage(req.body.image)).players.map(teamPlayers => teamPlayers.slice(0,teamSize).map(player => ({name: player})));
+                players = (await extractUsernamesFromImage(req.body.image)).players.map(teamPlayers => (teamPlayers.length < teamSize ? teamPlayers.concat(Array(teamSize - teamPlayers.length).fill('')) : teamPlayers.slice(0,teamSize)).map(player => ({name: player})));
             } else {
                 res.status(400).send('Requires player list or scoreboard image');
             }

@@ -49,6 +49,7 @@ const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://l
 const CORS_OPTIONS = {
 	origin: (origin, callback) => {
 		if(origin && !ALLOWED_ORIGINS.includes(origin)) {
+			console.log(origin);
 			return callback(new Error('Access from specified origin blocked by CORS policy'), false);
 		}
 		return callback(null, true);

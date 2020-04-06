@@ -94,7 +94,7 @@ const Session = () => {
                             <HostsModal show={viewHosts} onHide={() => setViewHosts(false)} owners={[ ...session.owners.map(email => ({ email, status: 'host' })), ...session.invited ]} submitInvite={email => dispatch(invite(email))}  />
                             <AnalyticsScreen code={session.code} matches={matches.matches} primaryButtonText={matchesComplete ? 'Next match' : 'Match finished'} primaryButtonAction={matchesComplete ? () => setView('new') : () => dispatch(finishMatch(mostRecentMatch))} secondaryButtonText='End session' secondaryButtonAction={() => dispatch(endSession())} host onOwnershipAction={() => setViewHosts(true)} errorAlert={session.error && session.token ? 'We are having trouble connecting to the session, but we will continue to try...' : false} />
                         </>
-                    :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatchWithUsernames={submitNewMatch} addMatchWithImage={submitImage} />)
+                    :   <NewMatch loading={matches.loading} error={matches.error} navigateBack={() => setView('analytics')} addMatchWithUsernames={submitNewMatch} addMatchWithImage={submitImage} defaultMode={mostRecentMatch && mostRecentMatch.mode} />)
             }
         </Layout>
     );
@@ -166,10 +166,10 @@ const ErrorSessionScreen = ({ back, newSession }) => {
     );
 };
 
-const NewMatch = ({ addMatchWithUsernames, addMatchWithImage, navigateBack, loading, error }) => {
+const NewMatch = ({ addMatchWithUsernames, addMatchWithImage, navigateBack, loading, error, defaultMode }) => {
     const [fileUpload, setFileUpload] = useState("");
     const [players, setPlayers] = useState([['','',''],['','','']]);
-    const [mode, setMode] = useState(GAME_MODES[0].title);
+    const [mode, setMode] = useState(defaultMode || GAME_MODES[0].title);
     const [lastSubmission, setLastSubmission] = useState(null); //image, usernames
 
     const validPlayers = (players) => {

@@ -67,6 +67,7 @@ export const finishMatch = match => {
         }
         try {
             const result = await processMatchResult(match);
+            console.log(result);
             if(result) {
                 fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${match.id}/result`, {
                     method: 'post',
@@ -88,8 +89,19 @@ export const finishMatch = match => {
                 .then(response => {
                     dispatch({ type: FINISH_MATCH, matchId: match.id, result });
                 })
-                .catch(err => {
+                .catch(async err => {
                     console.log(err);
+                    await fetch(`${process.env.REACT_APP_API_URL}/sessions/${state.session.code}/${match.id}/result`, {
+                        method: 'post',
+                        headers: {
+                            authorization: `Bearer ${state.session.token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            status: 'error',
+                        })
+                    })
+                    .catch(console.log);
                     dispatch({ type: FINISH_MATCH_FAILURE, matchId: match.id, error: 'Error saving match result'});
                 }); 
             } else {
@@ -127,15 +139,28 @@ const processMatchResult = async match => {
     try {
         console.log('Processing result');
         var updates;
+        var updateCount = 0;
+
+        const updatesIncludeMatch = updates => {
+            return !(
+                updates.reduce((acc, player) => acc + player.wins) === 0 || // Does not include match if nobody has won
+                updates.reduce((acc, player) => acc + player.mvps) === 0 || // Does not include match if nobody has earned an MVP
+                updates.reduce((acc, player) => acc + player.goals) === 0 || // Does not include match if nobody has scored
+                (updates.slice(0, updates.length / 2).filter(update => update.wins === 0).length && updates.slice(updates.length / 2).filter(update => update.wins === 0).length) // Does not include match if there is at least one player on each team who has not won
+            );
+        }
 
         // Get updates (repeat if updates do not include the match)
         do {
+            if (updateCount >= 3) {
+                // Cannot get match
+                console.log(match.id + ': Cannot get match');
+                return;
+            }
             updates = await Promise.all(match.players[0].concat(match.players[1]).map(player => getPlayerUpdate(player, match.mode)));
+            updateCount++;
         } while (
-            updates.reduce((acc, player) => acc + player.wins) === 0 || // Does not include match if nobody has won
-            updates.reduce((acc, player) => acc + player.mvps) === 0 || // Does not include match if nobody has earned an MVP
-            updates.reduce((acc, player) => acc + player.goals) === 0 || // Does not include match if nobody has scored
-            (updates.slice(0, updates.length / 2).filter(update => update.wins === 0).length && updates.slice(updates.length / 2).filter(update => update.wins === 0).length) // Does not include match if there is at least one player on each team who has not won
+            !updatesIncludeMatch(updates)
         );
         console.log(updates);
         updates = updates.reduce((acc, update, index) => {
@@ -144,6 +169,7 @@ const processMatchResult = async match => {
         }, [[],[]]);
         var results = updates.map((teamPlayers, teamIndex) => teamPlayers.map((player, playerIndex) => ({ id: player.id, rank: player.rank || match.players[teamIndex][playerIndex].rank, division: player.division || match.players[teamIndex][playerIndex].division, mmrChange: player.games === 1 ? player.mmrChange : undefined })));
         console.log(`Updates retrieved`);
+        console.log('Teams:' + results.length);
         // Determine who won
         const determineWins = (results, updates) => {
             for (let t = 0; t < updates.length; t++) {
@@ -203,6 +229,7 @@ const processMatchResult = async match => {
                 }              
             }
         }
+        console.log('Teams:' + results.length);
         if (count === updates[0].length + updates[1].length) {
             return results; // All players have only played once so all results collected
         }
@@ -252,7 +279,6 @@ const processMatchResult = async match => {
             }            
         }
 
-        console.log(results);
         return results;
     } catch (error) {
         console.log(error);

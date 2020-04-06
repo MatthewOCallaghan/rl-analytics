@@ -1,6 +1,7 @@
 const xray = require('x-ray');
+const { getIds } = require('./steam-username');
 
-const PLATFORMS = ['ps', 'steam', 'xbox'];
+const PLATFORMS = ['ps', 'xbox', 'steam'];
 
 const scrape = xray({
     filters: {
@@ -45,24 +46,48 @@ handleScrapingRequest = async (res, name, platform, fcn) => {
         } else {
             platforms = [platform];
         }
-    }
-    Promise.all(platforms.map(platform => getPlatformData(name, platform, fcn)))
-        .then(data => data.filter(platform => platform != null))
-        .then(data => res.json(data))
-        .catch(err => {
-            console.log(name);
-            console.log(platform);
-            console.log(err);
-        });
+    }    
+
+    for (let i = 0; i < platforms.length; i++) {
+        const p = platforms[i];
+        try {
+            const data = await getPlatformData(name, p, fcn);
+            if (data !== null) {
+                res.json([data]);
+                return;
+            }
+        } catch(error) {
+            console.log(error);
+        }
+    };
+
+    res.json([]);
 }
 
 getPlatformData = async (name, platform, fcn) => {
-    const data = await fcn(name, platform);
-    return Array.isArray(data) && data.length === 0 || Object.keys(data).length === 0 ? null : {platform, data};
+    try {
+
+        const isValid = data => data && !(Array.isArray(data) && data.length === 0 || Object.keys(data).length === 0);
+
+        if (platform === 'steam') {
+            const ids = await getIds(name.replace('%20', ' '));
+            const steamUsers = (await Promise.all(ids.map(id => fcn(id, 'steam')))).filter(user => isValid(user));
+            return steamUsers.length > 0 ? { platform, data: steamUsers[0] } : null;
+        }
+
+
+        const data = await fcn(name, platform);
+        return isValid(data) ? {platform, data} : null;
+
+    } catch(error) {
+        console.log(error);
+        return null;
+    }
 }
 
 module.exports = {
     scrape,
     handleScrapingRequest,
+    getPlatformData,
     PLATFORMS
 };

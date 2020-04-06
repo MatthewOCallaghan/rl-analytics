@@ -267,7 +267,7 @@ const finishMatch = (req, res, sessionCode, matchId, database) => {
             code = code.code;
 
             if (code === sessionCode) {
-                database('matches').where({ id: matchId }).update({ status: 'completing' }, ['id', 'status'])
+                database('matches').where({ id: matchId, status: 'playing' }).update({ status: 'completing' }, ['id', 'status'])
                 .then(update => {
                     res.json(update);
                 })
@@ -294,6 +294,7 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
 
     if(!status || !MATCH_STATUSES.includes(status)) {
         res.status(400).send('Invalid status');
+        console.log(`${status} is invalid`)
     } else if(status === 'finished' && !(result && Array.isArray(result) && result.length === 2 && Array.isArray(result[0]) && Array.isArray(result[1]) && result[0].concat(result[1]).length > 0 && result[0].concat(result[1]).filter(update => [update.id, update.wins].filter(value => value === undefined).length > 0 || (update.rank !== undefined && !RANK_REGEX.test(update.rank)) || (update.division !== undefined && !DIVISION_REGEX.test(update.division)) || (update.mmrChange !== undefined && !Number.isInteger(update.mmrChange))).length === 0 && result[0].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]) && result[1].map(playerUpdate => playerUpdate.wins).every((r,i,arr) => r === arr[0]))) {
         res.status(400).send('Incorrect result format');
     } else {
@@ -311,10 +312,7 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
                             .then(update => {
                                 res.json(update);
                             })
-                            .catch(err => {
-                                console.log(err);
-                                res.sendStatus(500);
-                            });
+                            .catch(handleError(res));
                     } else if (status === 'finished') {
                         result = result.map((teamResult, index) => teamResult.map(playerResult => ({ ...playerResult, team: index })));
                         result = result[0].concat(result[1]);
@@ -324,7 +322,7 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
                         database.transaction(trx => {
                             database('matches').transacting(trx).where({ id: matchId }).update({ status: 'finished', mvp: mvps.length === 1 ? mvps[0] : undefined, winner: result[0].wins === 0 ? 1 - result[0].team : result[0].team }, ['id', 'status'])
                                 .then(match => {
-                                    const queries = result.map(playerResult => 
+                                    const queries = result.filter(playerResult => playerResult.goals >= 0 || playerResult.assists >= 0 || playerResult.saves >= 0 || playerResult.shots >= 0 || playerResult.rank || playerResult.division || playerResult.mmrChange).map(playerResult => 
                                         database('players').transacting(trx)
                                                            .where({ id: playerResult.id, team: playerResult.team, match_id: matchId })
                                                            .update({ 
@@ -344,16 +342,13 @@ const submitResult = (req, res, sessionCode, matchId, database) => {
                                 .catch(trx.rollback);
                         })
                         .then(data => res.sendStatus(200))
-                        .catch(data => res.sendStatus(500));
+                        .catch(handleError(res));
                     }
                 } else {
                     res.sendStatus(403);
                 }
             })
-            .catch(err => {
-                console.log(err);
-                res.sendStatus(500);
-            });
+            .catch(handleError(res));
     }
 }
 

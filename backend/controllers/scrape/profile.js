@@ -1,4 +1,4 @@
-const { scrape, handleScrapingRequest, PLATFORMS } = require('./scrape');
+const { scrape, handleScrapingRequest, getPlatformData, PLATFORMS } = require('./scrape');
 const { statsScrape } = require('./stats');
 const { chartsScrape, processChartData } = require('./charts');
 const { ranksScrape, processRanksData } = require('./ranks');
@@ -21,37 +21,24 @@ getAllProfileData = async (name, platform) => {
     };
 }
 
-handleGetAllProfileData = async (res, name, platform) => {
-    if (platform) {
-        await handleScrapingRequest(res, name, platform, getAllProfileData);
-    } else {
-        res.json(await getAllProfileDataForEachPlatform(name));
-    }
-}
+handleGetAllProfileData = (res, name, platform) => handleScrapingRequest(res, name, platform, platform ? getAllProfileData : getAllProfileDataForUnknownPlatform);
 
-getAllProfileDataForEachPlatform = async name => {
-    const getData = async (name, platform) => {
-        const profile = await scrape(`https://rocketleague.tracker.network/profile/${platform}/${name}`, 'body', {
-            stats: statsScrape,
-            charts: chartsScrape,
-            ranks: ranksScrape
-        });
-        if (profile.stats.length > 0) {
-            return {
-                platform,
-                data: {
-                    stats: profile.stats,
-                    charts: processChartData(profile.charts),
-                    ranks: processRanksData(profile.ranks),
-                    mmr: await getRatingDetail(name, platform),
-                    updates: await getUpdates(name, platform)
-                }
-            };
-        }
-        return null;
+getAllProfileDataForUnknownPlatform = async (name, platform) => {
+    const profile = await scrape(`https://rocketleague.tracker.network/profile/${platform}/${name}`, 'body', {
+        stats: statsScrape,
+        charts: chartsScrape,
+        ranks: ranksScrape
+    });
+    if (profile.stats.length > 0) {
+        return {
+            stats: profile.stats,
+            charts: processChartData(profile.charts),
+            ranks: processRanksData(profile.ranks),
+            mmr: await getRatingDetail(name, platform),
+            updates: await getUpdates(name, platform)
+        };
     }
-
-    return (await Promise.all(PLATFORMS.map(platform => getData(name, platform)))).filter(platform => platform != null);
+    return null;
 }
 
 module.exports = {

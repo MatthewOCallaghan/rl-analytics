@@ -20,6 +20,7 @@
     "firebase-admin": "^8.10.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.20.10",
+    "nightmare": "^3.0.2",
     "pg": "^7.18.2",
     "x-ray": "^2.3.4"
   },

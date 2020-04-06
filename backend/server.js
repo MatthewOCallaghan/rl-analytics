@@ -46,17 +46,21 @@ const {
 
 const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://localhost:3000'];
 
-const CORS_OPTIONS = {
-	origin: (origin, callback) => {
-		if(origin && !ALLOWED_ORIGINS.includes(origin)) {
-			console.log(origin);
-			return callback(new Error('Access from specified origin blocked by CORS policy'), false);
-		}
-		return callback(null, true);
-	},
+// const CORS_OPTIONS = {
+// 	origin: (origin, callback) => {
+// 		if(origin && ALLOWED_ORIGINS.indexOf(origin) === -1) {
+// 			console.log(origin);
+// 			return callback(new Error('Access from specified origin blocked by CORS policy'), false);
+// 		}
+// 		return callback(null, true);
+// 	},
 	// methods: ['GET', 'POST', 'PATCH'],
 	// preflightContinue: true,
 	// credentials: true
+// };
+
+const CORS_OPTIONS = {
+	origin: ALLOWED_ORIGINS
 };
 
 app.use(bodyParser.json({limit: "50mb"}));

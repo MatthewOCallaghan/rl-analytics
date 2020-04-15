@@ -62,6 +62,11 @@ const GAME_MODES = [
         label: 'Dropshot',
         players: 3
     },
+    {
+        title: 'Snowday',
+        label: 'Snowday',
+        players: 3
+    }
 ];
 
 admin.initializeApp({
@@ -124,15 +129,15 @@ const addSession = async (req, res, database) => {
                         });
                 });
 
-                res.json({ token, email, code: session.code, startTime: session.start_time });
+                res.status(201).json({ token, email, code: session.code, startTime: session.start_time });
             } else {
-                res.json({ token, code: session.code, startTime: session.start_time });
+                res.status(201).json({ token, code: session.code, startTime: session.start_time });
             }
         });
 
     } catch(error) {
         console.log(error);
-        res.status(500).send(error);
+        res.sendStatus(500);
     }
 }
 
@@ -234,7 +239,7 @@ const addMatch = async (req, res, database) => {
                                             });
                                         })
                                         .then(inserts => {
-                                            res.json({
+                                            res.status(201).json({
                                                 players: inserts.reduce((acc, player) => { acc[player.team].push({ name: player.name, platform: player.platform, id: player.id }); return acc; }, [[], []]),
                                                 mode: req.body.mode,
                                                 id: inserts[0].match_id
@@ -360,7 +365,7 @@ const getMatches = (req, res, code, database) => {
     .where('sessions.code', '=', code)
     .then(data => {
         if (data.length === 0) { // If no records returned, code does not exist
-            res.status(400).send('Session does not exist');
+            res.status(404).send('Session does not exist');
         } else if (data.length === 1) { // If one record returned, code exists but no matches played yet
             res.json([]);
         } else { // If more than one record exists, code exists and matches played
@@ -922,5 +927,6 @@ module.exports = {
     checkValidSessionCode,
     verifyToken,
     verifyTokenIfExists,
-    verifyFirebaseId
+    verifyFirebaseId,
+    GAME_MODES
 }

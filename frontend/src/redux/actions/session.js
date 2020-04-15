@@ -195,4 +195,9 @@ export const GAME_MODES = [
         label: 'Dropshot',
         players: 3
     },
+    {
+        title: 'Snowday',
+        label: 'Snowday',
+        players: 3
+    }
 ];

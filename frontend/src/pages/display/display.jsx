@@ -30,19 +30,21 @@ const Display = () => {
     const { code } = useParams();
     const dispatch = useDispatch();
     const invalidCode = display.invalidCode && display.invalidCode.code === code;
+    const validCode = display.code === code && !invalidCode;
 
     const [viewInvite, setViewInvite] = useState(false);
 
-    // Clear display for each new code
+    // Clear display for each new code and make first data request
     useEffect(() => {
         if (code) {
             dispatch(clearDisplay());
+            dispatch(getMatches(code));
         }
     }, [code, dispatch]);
 
     // Fetch session data
     useEffect(() => {
-        if(code && !invalidCode) {
+        if(validCode) {
             dispatch(getMatches(code));
             if (user.profile) {
                 dispatch(checkInvites(code));
@@ -56,7 +58,7 @@ const Display = () => {
             }, 15000);
             return () => clearInterval(interval);
         }
-    }, [dispatch, code, invalidCode, user.profile]);
+    }, [dispatch, code, validCode, user.profile]);
 
     const onResumeOwnership = () => {
         if (display.resumeOwnershipToken) {
@@ -73,7 +75,9 @@ const Display = () => {
                 {
                     code === undefined || invalidCode
                         ?   <CodePrompt invalidCode={display.invalidCode} />
-                        :   <AnalyticsScreen onOwnershipAction={display.resumeOwnershipToken ? () => onResumeOwnership() : display.invite ? () => setViewInvite(true) : undefined} ownershipButtonText={display.resumeOwnershipToken && 'Resume hosting'} errorAlert={display.error ? 'We are having trouble connecting to the session, but we will continue to try...' : false} code={code} matches={display.matches} secondaryButtonText='Quit' />
+                        :   code !== display.code
+                            ?   <LoadingSessionScreen />
+                            :   <AnalyticsScreen onOwnershipAction={display.resumeOwnershipToken ? () => onResumeOwnership() : display.invite ? () => setViewInvite(true) : undefined} ownershipButtonText={display.resumeOwnershipToken && 'Resume hosting'} errorAlert={display.error ? 'We are having trouble connecting to the session, but we will continue to try...' : false} code={code} matches={display.matches} secondaryButtonText='Quit' />
                 }
             </Layout>
         </>
@@ -104,7 +108,7 @@ const CodePrompt = ({ invalidCode }) => {
             <div id='code-prompt'>
                 <h1>Enter session code</h1>
                 { invalidCode && <p id='invalid-code-message'>That session code does not exist</p> }
-                <TextBox value={sessionId} handleOnChange={handleTextBoxChange(setSessionId)} style={{textTransform: 'uppercase'}} />
+                <TextBox disableSpellCheck value={sessionId} handleOnChange={handleTextBoxChange(setSessionId)} style={{textTransform: 'uppercase', maxWidth: '100%'}} />
                 {
                     isSessionCodeFormatValid(sessionId)
                         ?   <Link to={`/display/${sessionId}`}><Button colour='white' large ghost>Submit</Button></Link>
@@ -114,5 +118,11 @@ const CodePrompt = ({ invalidCode }) => {
         </div>
     );
 }
+
+const LoadingSessionScreen = () => (
+    <div className='container-vertically-centre' >
+        <p>Loading session...</p>
+    </div>
+);
 
 export default Display;

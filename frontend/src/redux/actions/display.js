@@ -27,9 +27,9 @@ export const getMatches = code => {
         fetch(`${process.env.REACT_APP_API_URL}/sessions/${code}`)
         .then(response => {
             if(!response.ok) {
-                if(response.status === 400) {
+                if(response.status === 404) {
                     dispatch({ type: INVALID_CODE, code });
-                    return Promise.reject(new Error(400));
+                    return Promise.reject(new Error(404));
                 }
                 return Promise.reject(new Error(response.statusText));
             }
@@ -60,10 +60,10 @@ export const getMatches = code => {
                 return match;
             });
 
-            dispatch({ type: GET_MATCHES, matches });
+            dispatch({ type: GET_MATCHES, matches, code });
         })
         .catch(err => {
-            if(err.message !== 400) {
+            if(err.message !== 404) {
                 dispatch({ type: GET_MATCHES_FAILURE });
                 console.log(err);
             }

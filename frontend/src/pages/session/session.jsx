@@ -133,7 +133,7 @@ const HostsModal = ({ owners, show, onHide, submitInvite }) => {
                 </div>
                 <div id='invite'>
                     <TextBox style={{border: 'solid 1px black', maxWidth: '100%' }} placeholder='Email' handleOnChange={setInvitee} value={invitee} type='email' />
-                    <Button colour='black' handleOnClick={() => onClick()} disabled={invitee.length === 0 || !owners.filter(host => host.status !== 'error').map(host => host.email).includes(invitee)} >Invite</Button>
+                    <Button colour='black' handleOnClick={() => onClick()} disabled={invitee.length === 0 || owners.filter(host => host.status !== 'error').map(host => host.email).includes(invitee)} >Invite</Button>
                 </div>
             </div>
         </Modal>

@@ -76,3 +76,12 @@ section.match-history .match-history-score {
     color: red;
     text-align: center;
 }
+
+#notes {
+    margin-bottom: 30px;
+}
+
+#notes textarea {
+    width: 100%;
+    margin-bottom: 5px;
+}

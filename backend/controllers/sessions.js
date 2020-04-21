@@ -495,6 +495,37 @@ const getMatchHistory = (req, res, database) => {
             });
 }
 
+const getMatchNote = (req, res, matchId, database) => {
+    const userId = req.id;
+
+    database('notes').select('note').where('user_id', userId).andWhere('match_id', matchId).first()
+        .then(note => {
+            res.json(note ? note.note : '');
+        })
+        .catch(handleError(res));
+}
+
+const addMatchNote = (req, res, matchId, database) => {
+    const userId = req.id;
+
+    if (!(req.body.note && req.body.note.length > 0)) {
+        res.status(400).send('Invalid note');
+    } else if (!INTEGER_REGEX.test(matchId)) {
+        res.status(400).send('Invalid match id');
+    } else {
+        database.transaction(trx => {
+            return trx('notes').where('user_id', userId).andWhere('match_id', matchId).del()
+                        .then(() => trx('notes').insert({
+                            user_id: userId,
+                            match_id: matchId,
+                            note: req.body.note
+                        }))
+        })
+        .then(note => res.json(note))
+        .catch(handleError);
+    }
+}
+
 const getPlayerAnalytics = (req, res, sessionCode, matchId, database) => {
     database.select('players.name', 'players.team')
             .from('players').innerJoin('matches', 'matches.id', 'players.match_id').innerJoin('sessions', 'sessions.id', 'matches.session_id')
@@ -508,7 +539,7 @@ const getPlayerAnalytics = (req, res, sessionCode, matchId, database) => {
 
             var players = data.reduce((acc, player) => acc.map((teamAcc, i) => player.team === i ? teamAcc.concat(player.name) : teamAcc), [[],[]]);
 
-            database.select('matches.id AS matchId', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change')
+            database.distinct('matches.id AS matchId', 'matches.start_time', 'matches.mode', 'matches.status', 'matches.winner', 'matches.mvp', 'players.id AS playerId', 'players.name', 'players.platform', 'players.team', 'players.goals', 'players.assists', 'players.saves', 'players.shots', 'players.new_rank', 'players.new_division', 'players.mmr_change')
                 .from('sessions')
                 .innerJoin('session_owners', 'sessions.id', 'session_owners.session_id')
                 .innerJoin('matches', 'sessions.id', 'matches.session_id')
@@ -535,7 +566,7 @@ const getPlayerAnalytics = (req, res, sessionCode, matchId, database) => {
                                 playerData.games++;
                                 if (player.result) {
                                     STATS.forEach(stat => {
-                                        if (player.result[stat] !== null) {
+                                        if (Number.isInteger(player.result[stat])) {
                                             playerData[stat].games++;
                                             playerData[stat].value += player.result[stat];
                                         }
@@ -546,7 +577,7 @@ const getPlayerAnalytics = (req, res, sessionCode, matchId, database) => {
 
                         STATS.forEach(stat => {
                             playerData[stat] = playerData[stat].games ? (playerData[stat].games >= 10 ? Math.round((playerData[stat].value / playerData[stat].games) * 10) / 10 : `${playerData[stat].value}/${playerData[stat].games}`) : undefined;
-                        })
+                        });
 
                         return playerData;
                     }));
@@ -614,27 +645,27 @@ const getPlayerStats = (req, res, username, database) => {
                 current.date = record.date;
                 current.modes.push({
                     title: record.mode,
-                    games: record.games,
-                    wins: record.wins,
+                    games: parseInt(record.games),
+                    wins: parseInt(record.wins),
                     goals: {
-                        value: record.goals,
-                        games: record.goals_games
+                        value: parseInt(record.goals) || 0,
+                        games: parseInt(record.goals_games) || 0
                     },
                     assists: {
-                        value: record.assists,
-                        games: record.assists_games
+                        value: parseInt(record.assists) || 0,
+                        games: parseInt(record.assists_games) || 0
                     },
                     saves: {
-                        value: record.saves,
-                        games: record.saves_games
+                        value: parseInt(record.saves) || 0,
+                        games: parseInt(record.saves_games) || 0
                     },
                     shots: {
-                        value: record.shots,
-                        games: record.shots_games
+                        value: parseInt(record.shots) || 0,
+                        games: parseInt(record.shots_games) || 0
                     },
                     mvps: {
-                        value: record.mvps,
-                        games: record.mvps_games
+                        value: parseInt(record.mvps) || 0,
+                        games: parseInt(record.mvps_games) || 0
                     }
                 });
                 if (index === data.length - 1) {
@@ -922,6 +953,8 @@ module.exports = {
     checkInvites,
     resumeOwnership,
     handleGetSessionData,
+    getMatchNote,
+    addMatchNote,
     checkTokenExists,
     handleTokenIfExists,
     checkValidSessionCode,

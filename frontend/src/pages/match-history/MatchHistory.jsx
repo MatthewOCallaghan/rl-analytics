@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import { getIdToken } from '../../firebase/firebase';
+
 import { getMatchHistory } from '../../redux/actions/tracking';
 
 import Layout from '../../components/layout/Layout';
@@ -9,7 +11,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from '../../components/button/Button';
-import Spinner from 'react-bootstrap/Spinner';
+import Spinner from '../../components/spinner/Spinner';
 
 import './MatchHistory.css';
 
@@ -34,9 +36,7 @@ const MatchHistory = () => {
                     :   matchHistory.error
                             ?   <div id='match-history-status'>Error loading match history</div>
                             :   matchHistory.loading
-                                    ?   <div id='match-history-status'><Spinner animation='border' role='status' variant='dark'>
-                                            <span className='sr-only'>Loading...</span>
-                                        </Spinner></div>
+                                    ?   <div id='match-history-status'><Spinner /></div>
                                     :   matchHistory.matches && matchHistory.matches.map((match, index) => <Match key={`Match:${index}${match}`} match={match} user={user && user.username} setView={() => setView(match.id)} />)
             }
         </Layout>
@@ -47,8 +47,11 @@ const MatchResultScreen = ({ match, goBack }) => {
     return (
         <Container className='session-container' fluid>
             <Row>
-                <Col xs={12}>
+                <Col xs={12} md={8} lg={7}>
                     <MatchResult match={match} />
+                </Col>
+                <Col xs={12} md={4} lg={5}>
+                    <Note matchId={match.id} />
                 </Col>
             </Row>
             <Row>
@@ -114,6 +117,101 @@ const Match = ({ match, user, setView }) => {
                 </div>
             </div>
         </section>
+    );
+}
+
+const Note = ({ matchId }) => {
+
+    const [stored, setStored] = useState('');
+    const [text, setText] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+
+    useEffect(() => {
+        getIdToken()
+            .then(token => {
+                fetch(`${process.env.REACT_APP_API_URL}/matches/${matchId}/notes`, {
+                    headers: {
+                        authorization: `Bearer ${token}`
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return Promise.reject(new Error(response.statusText));
+                        }
+                        return response.json();
+                    })
+                    .then(note => {
+                        setLoading(false);
+                        if (note.length > 0) {
+                            setText(note);
+                            setStored(note);
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        setError(true);
+                        setLoading(false);
+                    });
+            })
+            .catch(err => {
+                console.log(err);
+                setError(true);
+                setLoading(false);
+            });
+        
+    }, [matchId]);
+
+    const updateNotes = () => {
+        setLoading(true);
+        getIdToken()
+            .then(token => {
+                fetch(`${process.env.REACT_APP_API_URL}/matches/${matchId}/notes`, {
+                    method: 'post',
+                    headers: {
+                        authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ note: text })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            return Promise.reject(new Error(response.statusText));
+                        }
+                        return response.json();
+                    })
+                    .then(note => {
+                        setLoading(false);
+                        setStored(note);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        setError(true);
+                        setLoading(false);
+                    });
+            })
+            .catch(err => {
+                console.log(err);
+                setError(true);
+                setLoading(false);
+            });
+    }
+
+    const errorLoadingNotes = error && text.length === 0;
+
+    return (
+        <div id='notes'>
+            <h2>Notes</h2>
+            {
+                loading && text.length === 0
+                    ?   <Spinner />
+                    :   <>
+                            <textarea onChange={event => setText(event.target.value)} disabled={loading || errorLoadingNotes} placeholder={errorLoadingNotes ? 'Error loading notes' : 'Notes'} value={text} />
+                            { !errorLoadingNotes && <Button colour='black' loading={loading} handleOnClick={updateNotes} disabled={text.length === 0 || loading || stored === text} >Update</Button> }
+                            { error && !errorLoadingNotes && <p style={{ color: 'red' }}>Error updating notes</p> }
+                        </>
+            }
+        </div>
     );
 }
 

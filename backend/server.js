@@ -41,6 +41,7 @@ const {
 	editUsername,
 	createInvite, replyToInvite, checkInvites, resumeOwnership,
 	getMatchHistory, getPlayerAnalytics, getPlayerStats,
+	getMatchNote, addMatchNote,
 	checkTokenExists, handleTokenIfExists, checkValidSessionCode, verifyToken, verifyTokenIfExists, verifyFirebaseId
 } = require('./controllers/sessions');
 
@@ -114,5 +115,9 @@ app.post('/sessions/:code/:match/result', checkTokenExists, checkValidSessionCod
 
 app.options('/sessions/:code/:match/:team/:player', cors(CORS_OPTIONS));
 app.put('/sessions/:code/:match/:team/:player', checkTokenExists, checkValidSessionCode, verifyToken, (req, res) => editUsername(req, res, database));
+
+app.get('/matches/:match/notes', checkTokenExists, verifyFirebaseId, (req, res) => getMatchNote(req, res, req.params.match, database));
+
+app.post('/matches/:match/notes', checkTokenExists, verifyFirebaseId, (req, res) => addMatchNote(req, res, req.params.match, database))
 
 module.exports = app;

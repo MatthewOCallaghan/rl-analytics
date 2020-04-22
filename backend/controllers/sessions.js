@@ -545,6 +545,7 @@ const getPlayerAnalytics = (req, res, sessionCode, matchId, database) => {
                 .innerJoin('matches', 'sessions.id', 'matches.session_id')
                 .innerJoin('players', 'matches.id', 'players.match_id')
                 .whereIn('session_owners.user_id', database.select('user_id').from('session_owners').innerJoin('sessions', 'session_owners.session_id', 'sessions.id').where('code', '=', sessionCode))
+                .andWhere('status', '<>', 'playing')
                 .then(data => {
                     var matches = processMatches(data);
                     const STATS = ['goals', 'assists', 'saves', 'shots', 'wins', 'mvps'];
@@ -961,5 +962,6 @@ module.exports = {
     verifyToken,
     verifyTokenIfExists,
     verifyFirebaseId,
-    GAME_MODES
+    GAME_MODES,
+    PLATFORMS
 }

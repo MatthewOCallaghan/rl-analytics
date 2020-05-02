@@ -1,0 +1,87 @@
+section.match-history {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 40px 0;
+}
+
+section.match-history.hover {
+    cursor: pointer;
+}
+
+section.match-history h1 {
+    font-size: 1rem;
+}
+
+section.match-history .match-history-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    font-family: 'Bourgeois Book', monospace;
+}
+
+/* .match-history-row:first-child, .match-history-row:last-child {
+    flex-grow: 1;
+} */
+
+section.match-history .match-history-players {
+    /* padding: 5px; */
+    width: 40%;
+    display: flex;
+}
+
+section.match-history .match-history-players .gradient {
+    flex-grow: 1;
+    position: relative;
+}
+
+section.match-history .match-history-players .players {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    justify-content: center;
+    height: 100%;
+}
+
+section.match-history .match-history-players.match-history-blue-team .players {
+    background-color: blue;
+    align-self: flex-end;
+    border-radius: 0 10px 10px 0;
+}
+
+section.match-history .match-history-players.match-history-blue-team .gradient {
+    background-image: linear-gradient(to right, white, blue);
+}
+
+section.match-history .match-history-players.match-history-orange-team .players {
+    background-color: orange;
+    align-self: flex-start;
+    border-radius: 10px 0 0 10px;
+}
+
+section.match-history .match-history-players.match-history-orange-team .gradient {
+    background-image: linear-gradient(to right, orange, white);
+}
+
+section.match-history .match-history-score {
+    text-align: center;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+#match-history-status {
+    width: 100%;
+    color: red;
+    text-align: center;
+}
+
+#notes {
+    margin-bottom: 30px;
+}
+
+#notes textarea {
+    width: 100%;
+    margin-bottom: 5px;
+}

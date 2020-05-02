@@ -1,0 +1,30 @@
+#code-prompt {
+    background-color: black;
+    border-radius: 10px;
+    color: white;
+    max-width: 75%;
+    min-width: 50%;
+    padding: 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#code-prompt > input {
+    margin: 1rem auto;
+}
+
+#invalid-code-message {
+    color: red;
+}
+
+#hosts-modal p {
+    text-align: justify;
+}
+
+#hosts-modal #invite-buttons {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-around;
+}

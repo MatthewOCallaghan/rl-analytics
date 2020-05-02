@@ -8,7 +8,7 @@
 const vision = require('@google-cloud/vision');
 
 const KEYWORDS = ['COMPETITIVE', 'SCORE', 'GOALS', 'ASSISTS', 'SAVES', 'SHOTS', 'PING', 'SCORED', 'BY', 'YOU'];                                                                                                                                                                                                               // From OG PLAYER, as OG can get lost if deemed to start before team name
-const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', 'ALL-STAR', 'SUPERSTAR', 'AIRHEAD', 'ANIMATOR', 'DEVELOPER', 'MODERATOR', 'BALLISTIC', 'FLOATER', 'GOALTENDER', 'LEADFOOT', 'RECKLESS', 'SHERPA', 'SHOWBOAT', 'SKYLORD', 'STEAMROLLER', 'TRAILBLAZER', 'WALL-CRAWLER', 'WHEELER', 'DEMOGORGON', 'COUCH-POTATO', 'COMMITTED', 'JUGGLER', 'PLAYER'];
+const ONE_WORD_TITLES = ['VETERAN', 'EXPERT', 'MASTER', 'LEGEND', 'ROCKETEER', 'ALL-STAR', 'SUPERSTAR', 'AIRHEAD', 'ANIMATOR', 'DEVELOPER', 'DUELIST', 'MAESTRO', 'MODERATOR', 'BALLISTIC', 'FLOATER', 'GOALTENDER', 'LEADFOOT', 'RECKLESS', 'SHERPA', 'SHOWBOAT', 'SKYLORD', 'STEAMROLLER', 'SOLOIST', 'TRAILBLAZER', 'TECHNICIAN', 'WALL-CRAWLER', 'WHEELER', 'DEMOGORGON', 'COUCH-POTATO', 'COMMITTED', 'JUGGLER', 'PLAYER'];
 const TEAM_ABBREVIATION = /[\[\(][A-Z0-9\*]{1,4}[\]\)]$/; // Just matches end of word rather than whole word in case avatar text gets merged in
 
 const handleExtractUsernames = async (req, res) => {
@@ -59,7 +59,7 @@ const extractUsernamesFromImage = async image => {
         if (Math.abs(score1[0].x - score2[0].x) < error && Math.abs(score1[1].x - score2[1].x) < error) { // Check those are the table headings and not part of some name
             scoresValid = true;
             boundaries[1] = Math.max(score1[0].x, score2[0].x);                                           // Remove everything to the right of them
-            boundaries[3] = score2[3].y + score2[0].y - score1[3].y;                                      // Remove everything more that the y distance between them below the lower score
+            boundaries[3] = score2[3].y + score2[0].y - score1[3].y;                                      // Remove everything more than the y distance between them below the lower score
             var i = 0;
             while(i < words.length && words[i].boundingPoly.vertices[3].y < score1[0].y) {
                 i++;
@@ -352,7 +352,8 @@ const removeDuplicatePlayers = players => {
 }
 
 module.exports = {
-    handleExtractUsernames
+    handleExtractUsernames,
+    extractUsernamesFromImage
 }
 
 

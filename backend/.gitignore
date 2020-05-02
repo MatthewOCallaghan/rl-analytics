@@ -7,6 +7,9 @@ images
 # google key
 rl-analytics-266421-08b9e8fb4034.json
 
+#firebase key
+rl-analytics-auth-firebase.json
+
 #VS Code
 .vscode
 

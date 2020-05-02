@@ -1,0 +1,50 @@
+table.player-table {
+    text-align: center;
+    font-family: 'Bourgeois Book';
+    font-size: 1.2rem;
+}
+
+table.player-table th {
+    padding: 0 15px;
+}
+
+tr.player {
+    border-top: 5px solid;
+    border-bottom: 5px solid;
+    border-color: white;
+}
+
+tr.player > td {
+    color: white;
+    padding: 2px 15px;
+}
+
+tr.player > td:first-child {
+    border-radius: 40px 0 0 40px;
+}
+
+tr.player > td:nth-child(2) {
+    text-align: left;
+}
+
+tr.player > td:last-child {
+    border-radius: 0 40px 40px 0;
+}
+
+table.player-table img {
+    width: 2rem;
+    height: 2rem;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 10px;
+    background-color: transparent;
+}
+
+.edit-username-modal {
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 10px;
+    padding: 20px;
+}

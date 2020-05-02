@@ -1,0 +1,10 @@
+.box {
+    border-width: 1px;
+    border-style: solid;
+    padding: 5%;
+    border-radius: 10px;
+}
+
+.box h2 {
+    margin-top: 0;
+}

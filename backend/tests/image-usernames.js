@@ -83,6 +83,10 @@ const correctOutput = {
         ['Ivan-lp', 'SWIFTI23'],
         ['MattyOCallaghan', 'jamesontour']
     ],
+    'doubles-2': [
+        ['MattyOCallaghan', 'jamesontour'],
+        ['Letonixion', 'KaBistHaltBad']
+    ],
     'solo-standard-0': [
         ['CommGunner', 'Grillsalat', 'torkar'],
         ['LadyOnTheLoo', 'MattyOCallaghan', 'TrinityAven']
@@ -102,6 +106,66 @@ const correctOutput = {
     'standard-1': [
         ['ruiduraes22', 'jamesontour', 'MattyOCallaghan'],
         ['enovert', 'KYDwarrior', 'Kryptid___']
+    ],
+    'standard-2': [
+        ['BoobyY-_-', 'SpoKeR8', 'RiderXeno'],
+        ['MattyOCallaghan', 'opring1871', 'jamesontour']
+    ],
+    'standard-3': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['BoobyY-_-', 'RiderXeno', 'SpoKeR8']
+    ],
+    'standard-4': [
+        ['opring1871', 'MattyOCallaghan', 'jamesontour'],
+        ['Kyoya_RL', 'f9', 'MBY_Yarno070_X3']
+    ],
+    'standard-5': [
+        ['jamesontour', 'opring1871', 'MattyOCallaghan'],
+        ['xMadNightx', 'Xx_Bearry_xX', 'Mikado_RL']
+    ],
+    'standard-6': [
+        ['RyRyLima17', 'Lukakouz', 'Onurrdam'],
+        ['MattyOCallaghan', 'jamesontour', 'opring1871']
+    ],
+    'standard-7': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['Erntedunkfest', 'CurryPeak', 'iAirDribbleRL']
+    ],
+    'standard-8': [
+        ['Rufuz29', 'tiagooo95_19', 'nunorafa12'],
+        ['jamesontour', 'MattyOCallaghan', 'opring1871']
+    ],
+    'standard-9': [
+        ['OliViruz', 'Tiiill3y', 'scottcwhite'],
+        ['MattyOCallaghan', 'jamesontour', 'opring1871']
+    ],
+    'standard-10': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['BrocklesbyA', 'Skin-FluteRL', 'TSM_TomatoTown']
+    ],
+    'standard-11': [
+        ['notMadness', 'FabiBerschi1991', 'Navy_Rifle'],
+        ['jamesontour', 'opring1871', 'MattyOCallaghan']
+    ],
+    'standard-12': [
+        ['jamesontour', 'opring1871', 'MattyOCallaghan'],
+        ['Zoko', 'JoSepH', 'Pqlottoshooter']
+    ],
+    'standard-13': [
+        ['Bloody Max Boom', 'gib v2', 'Webberhino'],
+        ['jamesontour', 'MattyOCallaghan', 'opring1871']
+    ],
+    'standard-14': [
+        ['MattyOCallaghan', 'jamesontour', 'opring1871'],
+        ['Colt-564', 'cssx1', 'xtr3me-theking']
+    ],
+    'standard-15': [
+        ['ZaSti97', 'WaAmBoOs', 'LewisWkhm03'],
+        ['jamesontour', 'MattyOCallaghan', 'opring1871']
+    ],
+    'standard-16': [
+        ['jo-fnd_EZ', 'ugobgdu13', 'noeliive_'],
+        ['jamesontour', 'opring1871', 'MattyOCallaghan']
     ]
 }
 
@@ -153,7 +217,15 @@ const googleOutput = {
     'standard-1': [
         ['ruiduraes22', 'jamesontour', 'MattyOCallaghan'],
         ['enovert', 'KYDwarrior', 'Kryptid.'] // misreads Kryptid___ as Kryptid.
-    ]
+    ],
+    'standard-4': [
+        ['opring1871', 'Matty0Callaghan', 'jamesontour'], // misreads MattyOCallaghan as Matty0Callaghan
+        ['Kyoya_RL', 'f9', 'MBY_Yarno070_X3']
+    ],
+    'standard-9': [
+        ['OliViruz', 'Tiil3y', 'Scottcwhite'], // misreads Tiiill3y as Tiil3y and scottcwhite as Scottcwhite
+        ['MattyOCallaghan', 'jamesontour', 'opring1871']
+    ],
 }
 
 module.exports = {

@@ -1,0 +1,86 @@
+button {
+    border-style: solid;
+    border-width: 1px;
+    color: white;
+    text-align: center;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    transition: all 0.4s;
+    font-weight: lighter;
+}
+
+.button-orange, button.button-orange.button-ghost:hover:not(.button-disabled) {
+    background-color: orange;
+    border-color: orange;
+}
+
+.button-orange:hover:not(.button-disabled):not(.button-ghost), .button-orange.button-ghost:not(.button-disabled):not(:hover) {
+    color: orange;
+}
+
+.button-green, button.button-green.button-ghost:hover:not(.button-disabled) {
+    background-color: lime;
+    border-color: lime;
+}
+
+.button-green:hover:not(.button-disabled):not(.button-ghost), .button-green.button-ghost:not(.button-disabled):not(:hover) {
+    color: lime;
+}
+
+.button-red, button.button-red.button-ghost:hover:not(.button-disabled) {
+    background-color: red;
+    border-color: red;
+}
+
+.button-red:hover:not(.button-disabled):not(.button-ghost), .button-red.button-ghost:not(.button-disabled):not(:hover) {
+    color: red;
+}
+
+.button-blue, button.button-blue.button-ghost:hover:not(.button-disabled) {
+    background-color: blue;
+    border-color: blue;
+}
+
+.button-blue:hover:not(.button-disabled):not(.button-ghost), .button-blue.button-ghost {
+    color: blue;
+}
+
+.button-black, button.button-black.button-ghost:hover:not(.button-disabled) {
+    background-color: black;
+    border-color: black;
+}
+
+.button-black:hover:not(.button-disabled):not(.button-ghost), .button-black.button-ghost {
+    color: black;
+}
+
+.button-white, button.button-white.button-ghost:hover:not(.button-disabled) {
+    background-color: white;
+    border-color: white;
+    color: black;
+}
+
+.button-white:hover:not(.button-disabled):not(.button-ghost), .button-white.button-ghost {
+    color: white;
+}
+
+button:hover:not(.button-disabled) {
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.button-ghost {
+    background-color: transparent;
+}
+
+button.button-ghost:hover {
+    color: white;
+}
+
+.button-disabled:not(.button-loading) {
+    filter: brightness(0.5);
+}
+
+.button-large {
+    font-size: 1.7rem;
+}

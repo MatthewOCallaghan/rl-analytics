@@ -5,7 +5,7 @@ const { scrape } = require('./scrape');
 const chartsScrape = scrape('.content-container div', ['script | chartData']);
 
 getChartData = async (name, platform) => {
-    return await scrape(`https://rocketleague.tracker.network/profile/${platform}/${name}`, 'body', chartsScrape)//scrape('.content-container div', ['script | chartData']))
+    return await scrape(`https://rocketleague.tracker.network/profile/${platform}/${name}`, 'body', chartsScrape)
         .then(processChartData);
 }
 

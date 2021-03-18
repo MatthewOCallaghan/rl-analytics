@@ -18,7 +18,7 @@ if (process.env.NODE_ENV !== 'production') {
 		host: '127.0.0.1',
 		user: DATABASE_USER,
 		password: DATABASE_PASSWORD,
-		database: 'rl_analytics'
+		database: 'rl_analytics' // Local test database
 	}
 }
 
@@ -46,19 +46,6 @@ const {
 } = require('./controllers/sessions');
 
 const ALLOWED_ORIGINS = ['http://rocketleagueanalytics.herokuapp.com', 'http://localhost:3000'];
-
-// const CORS_OPTIONS = {
-// 	origin: (origin, callback) => {
-// 		if(origin && ALLOWED_ORIGINS.indexOf(origin) === -1) {
-// 			console.log(origin);
-// 			return callback(new Error('Access from specified origin blocked by CORS policy'), false);
-// 		}
-// 		return callback(null, true);
-// 	},
-	// methods: ['GET', 'POST', 'PATCH'],
-	// preflightContinue: true,
-	// credentials: true
-// };
 
 const CORS_OPTIONS = {
 	origin: ALLOWED_ORIGINS

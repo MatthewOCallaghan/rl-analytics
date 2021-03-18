@@ -119,7 +119,7 @@ export const replyToInvite = (response, code) => {
                 dispatch({ type: ACCEPTED_INVITE, token, code });
                 dispatch(getSessionData());
             } else {
-                dispatch({ type: RECEIVED_INVITE });
+                dispatch({ type: REJECTED_INVITE });
             }
         })
         .catch(err => {

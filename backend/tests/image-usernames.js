@@ -1,3 +1,4 @@
+// Correct username recognition outputs for test images
 const correctOutput = {
     'full-scoreboard': [
         ['jamesontour', 'MattyOCallaghan'],
@@ -143,10 +144,6 @@ const correctOutput = {
         ['jamesontour', 'MattyOCallaghan', 'opring1871'],
         ['BrocklesbyA', 'Skin-FluteRL', 'TSM_TomatoTown']
     ],
-    'standard-11': [
-        ['notMadness', 'FabiBerschi1991', 'Navy_Rifle'],
-        ['jamesontour', 'opring1871', 'MattyOCallaghan']
-    ],
     'standard-12': [
         ['jamesontour', 'opring1871', 'MattyOCallaghan'],
         ['Zoko', 'JoSepH', 'Pqlottoshooter']
@@ -166,9 +163,47 @@ const correctOutput = {
     'standard-16': [
         ['jo-fnd_EZ', 'ugobgdu13', 'noeliive_'],
         ['jamesontour', 'opring1871', 'MattyOCallaghan']
+    ],
+    'standard-17': [
+        ['xGloow-', 'Mr_Commander_16', 'Gravityy_Luke'],
+        ['MattyOCallaghan', 'jamesontour', 'opring1871']
+    ],
+    'standard-18': [
+        ['TomHester234', 'AJS_BCFC', 'Bristol_Bolt-'],
+        ['jamesontour', 'opring1871', 'MattyOCallaghan']
+    ],
+    'standard-19': [
+        ['MattyOCallaghan', 'jamesontour', 'opring1871'],
+        ['Naziparaesto', 'Jmeda__', 'nicoabet71119']
+    ],
+    'standard-20': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['AtOMiK-Flavix-_-', 'iSmxshGod', 'YeeZyViiRus']
+    ],
+    'standard-21': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['ialeale7', 'Medico_001', 'teoiale97']
+    ],
+    'standard-22': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['The-_Ghost_SkY_-', 'KimSantosa', 'moisescano23']
+    ],
+    'standard-23': [
+        ['mycrush_bebesita', 'DeivixZz', 'Mr_RealSalchi08'],
+        ['jamesontour', 'MattyOCallaghan', 'opring1871']
+    ],
+    'standard-24': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['Charliee96', 'Jaylo111', 'Jhs579']
+    ],
+    'standard-25': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['Boboliek', 'Kxnann', 'Semkee043']
     ]
 }
 
+// Expected output for username recognition algorithm, taking into account Google Vision misreads
+// This is used to purely test my algorithm and not Google Vision
 const googleOutput = {
     'full-scoreboard': [
         ['jamesontour', 'MattyOCallaghan'],
@@ -212,7 +247,7 @@ const googleOutput = {
     ],
     'standard-0': [
         ['ruiduraes22', 'jamesontour', 'MattyOCallaghan'],
-        ['enovert', 'KYDwarrior', 'Kryptid.'] // misses the underscores from Kryptid___
+        ['enovert', 'KYDwarrior', 'Kryptid'] // misses the underscores from Kryptid___
     ],
     'standard-1': [
         ['ruiduraes22', 'jamesontour', 'MattyOCallaghan'],
@@ -225,6 +260,38 @@ const googleOutput = {
     'standard-9': [
         ['OliViruz', 'Tiil3y', 'Scottcwhite'], // misreads Tiiill3y as Tiil3y and scottcwhite as Scottcwhite
         ['MattyOCallaghan', 'jamesontour', 'opring1871']
+    ],
+    'standard-12': [
+        ['jamesontour', 'opring1871', 'Mattyocallaghan'], // misreads MattyOCallaghan as Mattyocallaghan
+        ['Zoko', 'JoSepH', 'Pqlottoshooter']
+    ],
+    'standard-15': [
+        ['Zasti97', 'WaAmBoOs', 'LewisWkhmØ3'], // misreads ZaSti97 as Zasti97 and LewisWkhm03 as LewisWkhmØ3
+        ['jamesontour', 'MattyOCallaghan', 'opring1871']
+    ],
+    'standard-18': [
+        ['TomHester234', 'AJS_BCFC', 'BristolBolt-'], // misreads Bristol_Bolt- as BristolBolt-
+        ['jamesontour', 'opring1871', 'MattyOCallaghan']
+    ],
+    'standard-19': [
+        ['Matty0callaghan', 'jamesontour', 'opring1871'], // misreads MattyOCallaghan as Matty0callaghan
+        ['Naziparaesto', 'Jmeda__', 'nicoabet71119']
+    ],
+    'standard-21': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['ialeale7', 'Medico', 'teoiale97'] // misreads Medico_001 as Medico
+    ],
+    'standard-22': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['The-_Chost_SkY_-', 'KimSantosa', 'moisescano23'] // misreads The-_Ghost_SkY_- as The-_Chost_SkY_-
+    ],
+    'standard-23': [
+        ['mycrush_bebesita', '& DeivixZz', 'Mr_RealSalchi08'], // misreads party symbol as & to get '& DeivixZz'
+        ['jamesontour', 'MattyOCallaghan', 'opring1871']
+    ],
+    'standard-25': [
+        ['jamesontour', 'MattyOCallaghan', 'opring1871'],
+        ['Boboliek', 'Kxnann', '&Semkee043'] // misreads party symbol as & to get &Semkee043
     ],
 }
 

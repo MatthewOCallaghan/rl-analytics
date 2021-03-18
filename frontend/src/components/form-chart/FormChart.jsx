@@ -51,12 +51,6 @@ const FormChart = ({ players }) => {
         <Line
             data={data}
             options={{
-                // tooltips: {
-                //     enabled: false
-                // },
-                // hover: {
-                //     mode: null
-                // },
                 scales: {
                     yAxes: [{
                         scaleLabel: {

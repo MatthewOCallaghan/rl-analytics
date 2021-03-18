@@ -14,21 +14,13 @@ const FeaturedMatches = ({ matches }) => {
                     ?   <Carousel>
                             {
                                 matches.map(match => 
-                                    <Carousel.Item>
+                                    <Carousel.Item key={match.id}>
                                         <MatchResult match={match} compact noTitle/>
                                     </Carousel.Item>)
                             }
                         </Carousel>
                     :   <MatchResult match={matches[0]} compact noTitle/>
             }
-            {/* <Carousel>
-                {
-                    matches.map(match => 
-                        <Carousel.Item>
-                            <MatchResult match={match} compact noTitle/>
-                        </Carousel.Item>)
-                }
-            </Carousel> */}
         </div>
     );
 }

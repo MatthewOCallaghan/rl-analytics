@@ -1,9 +1,12 @@
 // Scoreboard images must include both team names and all player usernames as a minimum.
 // For best results, minimise amount of text included in image that is not in scoreboard.
 
-//TODO: Replace obviously misread characters like multiplication × with x
-//TODO: cut off everything that starts above bottom of team name, as well as all records above and including team name
-//TODO: Use fuzzy search comparison to compare extracted names and names used in the RL session and replace if needed
+/*
+ Possible improvements:
+    * Replace obviously misread characters like multiplication × with x
+    * Cut off everything that starts above bottom of team name, as well as all records above and including team name
+    * Use fuzzy search comparison to compare extracted names and names used in the RL session and replace if needed
+*/
 
 const vision = require('@google-cloud/vision');
 
@@ -83,7 +86,6 @@ const extractUsernamesFromImage = async image => {
     return ({players,detections,words,lines,teamLines,teamRecords: teamLines.map(groupLinesIntoRecords)});
 }
 
-// const removeCompetitiveHeading = 
 
 const isWordCutOff = (word, target, imageRightX) => {
     return word.description === target ||
@@ -135,8 +137,6 @@ const groupWordsIntoLines = words => {
         const line = lines[lines.length - 1];
         const error = Math.min(wordBottomY - wordTopY, line.bottomY - line.topY) / 2;
         if (
-            // Math.abs(wordTopY - line.topY) < error && 
-            // Math.abs(wordBottomY - line.bottomY) < error && 
             (Math.min(wordBottomY, line.bottomY) - Math.max(wordTopY, line.topY)) > error &&
             Math.abs(word.boundingPoly.vertices[0].x - line.words[line.words.length - 1].boundingPoly.vertices[1].x) < (error * 2) // Ensures word is to right of last word on line (requires a bigger error margin as this time there is supposed to be a gap)
         ) {
@@ -174,12 +174,6 @@ const splitLinesIntoTeams = lines => {
 
 // Finds line index containing 'BLUE' or 'ORANGE', returning teamLines.length if neither can be found
 const findGenericTeamName = teamLines => {
-    // var i = 0;
-    // while(i < teamLines.length && teamLines[i].words.filter(word => word.description === 'BLUE' || word.description === 'ORANGE').length === 0) {
-    //     i++;
-    // }
-    // return i;
-
     var i = 0;
     while(i < teamLines.length) {
         const nameWords = teamLines[i].words.filter(word => word.description === 'BLUE' || word.description === 'ORANGE');
@@ -270,31 +264,6 @@ const identifyNamesFromRecords = records => {
     return players;
 }
 
-// const removeWordsFromRecordsThatStartBeforeBottomOfTeamName = (records, teamNameBottomY) => {
-//     // return records.map(record => (
-//     //     {
-//     //         ...record,
-//     //         lines: record.lines.map(line => (
-//     //             {
-//     //                 ...line, 
-//     //                 words: line.words.filter(word => word.boundingPoly.vertices[0].y > teamNameBottomY)
-//     //             }
-//     //         )).filter(line => line.words.length > 0)
-//     //     }
-//     // )).filter(record => record.lines.length > 0);
-
-//     records.forEach((record, recordIndex) => {
-//         record.lines.forEach((line, lineIndex) => {
-//             line.words.forEach((word, wordIndex) => {
-//                 if(word.boundingPoly.vertices[0].y > teamNameBottomY) {
-//                     return records;
-//                 }
-                
-//             });
-//         });
-//     });
-// }
-
 const removeWordsFromLineThatEndBeforeX = (line, x) => {
     // Used to remove avatar text (that ends before title leftX + width of one letter (as an error margin))
     // Keeps words that end before x if they end in team abbreviation (so that abbreviation doesn't get lost if Google merges it with avatar text)
@@ -358,6 +327,8 @@ module.exports = {
 
 
 /*
+
+    Username detection algorithm once words have been detected and keywords/numbers/outliers have been removed:
 
     1. Split into two teams
     2. If team contains BLUE or ORANGE...
